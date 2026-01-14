@@ -4,10 +4,13 @@ use Symfony\Component\Dotenv\Dotenv;
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
-if (method_exists(Dotenv::class, 'bootEnv')) {
+// Ustawienie środowiska testowego
+$_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = 'test';
+
+if (file_exists(dirname(__DIR__).'/.env')) {
     (new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
 }
 
-if ($_SERVER['APP_DEBUG']) {
-    umask(0000);
-}
+// Nadpisanie środowiska na test
+$_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = 'test';
+$_SERVER['APP_DEBUG'] = $_ENV['APP_DEBUG'] = '1';

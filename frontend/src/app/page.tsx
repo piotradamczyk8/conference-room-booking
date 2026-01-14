@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { DashboardStats } from '@/components/dashboard/DashboardStats';
 
 /**
  * Strona główna - Dashboard w stylu WIP.pl
@@ -35,50 +36,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="card p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-800">—</div>
-                <div className="text-sm text-gray-500">Dostępnych sal</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-800">—</div>
-                <div className="text-sm text-gray-500">Rezerwacji dziś</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-800">—</div>
-                <div className="text-sm text-gray-500">Aktywnych rezerwacji</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Stats cards - pobierane z API */}
+        <DashboardStats />
 
         {/* Quick actions */}
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Szybkie akcje</h3>

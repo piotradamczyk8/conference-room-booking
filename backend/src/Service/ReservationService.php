@@ -21,7 +21,7 @@ final readonly class ReservationService
     public function __construct(
         private ReservationRepositoryInterface $reservationRepository,
         private RoomService $roomService,
-        private ReservationConflictChecker $conflictChecker,
+        private ReservationConflictCheckerInterface $conflictChecker,
         private MessageBusInterface $messageBus,
     ) {}
 
