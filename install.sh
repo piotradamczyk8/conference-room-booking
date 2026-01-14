@@ -272,16 +272,22 @@ install_dependencies() {
     print_step "Instalacja zależności PHP (composer)..."
     # Uruchom jako root aby uniknąć problemów z uprawnieniami na Linux
     docker compose exec -T --user root backend composer install --no-interaction --optimize-autoloader 2>&1 | tail -5
-    # Napraw uprawnienia dla www-data
+    # Napraw uprawnienia dla www-data (vendor i var)
     docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/vendor 2>/dev/null || true
+    docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/var 2>/dev/null || true
+    docker compose exec -T --user root backend chmod -R 777 /var/www/html/var 2>/dev/null || true
     print_success "Zależności PHP zainstalowane"
     
-    # Restart messenger-worker który używa tego samego kodu
+    # Restart messenger-worker który używa tego samego kodu (z nowymi zależnościami)
+    print_step "Restart messenger-worker..."
     docker compose restart messenger-worker >/dev/null 2>&1 || true
+    print_success "Messenger-worker zrestartowany"
     
     print_step "Instalacja zależności JS (npm)..."
+    # Usuń stare node_modules (mogą mieć binaria dla innej platformy)
+    docker compose exec -T --user root frontend rm -rf node_modules 2>/dev/null || true
     # Uruchom jako root aby uniknąć problemów z uprawnieniami na Linux
-    docker compose exec -T --user root frontend npm install 2>&1 | tail -3
+    docker compose exec -T --user root frontend npm install 2>&1 | tail -5
     print_success "Zależności JS zainstalowane"
     
     # Restart frontendu aby załadował nowe moduły
