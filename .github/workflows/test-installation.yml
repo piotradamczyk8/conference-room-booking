@@ -14,7 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # macOS pominięty - wymaga Docker Desktop (płatne lub dodatkowa konfiguracja)
+        os: [ubuntu-latest, windows-latest]
     
     steps:
       - name: Checkout code
@@ -24,45 +25,54 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker.io docker-compose-plugin
+          sudo apt-get install -y docker.io curl
           sudo systemctl start docker
           sudo usermod -aG docker $USER
+          # Instalacja Docker Compose v2
+          sudo mkdir -p /usr/local/lib/docker/cli-plugins
+          sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
           docker --version
           docker compose version
       
       - name: Setup Docker (macOS)
         if: runner.os == 'macOS'
         run: |
-          # Docker jest już dostępny na GitHub Actions macOS runners
-          docker --version
-          docker compose version
+          # macOS runners nie mają Docker - użyj Colima lub Docker Desktop
+          # Na razie pomijamy macOS - wymaga dodatkowej konfiguracji
+          echo "⚠️ macOS wymaga Docker Desktop - pomijamy na razie"
+          exit 0
       
       - name: Setup Docker (Windows)
         if: runner.os == 'Windows'
         run: |
-          # Docker Desktop powinien być dostępny, ale sprawdzamy
+          # Docker Desktop powinien być dostępny na Windows runners
           docker --version
           docker compose version
       
       - name: Make install.sh executable
+        shell: bash
         run: chmod +x install.sh
       
       - name: Run installation script
+        shell: bash
         env:
           API_PIN: ${{ secrets.API_PIN || '1401' }}
         run: |
           ./install.sh
       
       - name: Wait for services
+        shell: bash
         run: |
           echo "Czekanie na uruchomienie serwisów..."
           sleep 20
       
       - name: Check container status
+        shell: bash
         run: |
           docker compose ps
           # Sprawdź czy wszystkie kontenery są Up
-          NOT_RUNNING=$(docker compose ps --format json | grep -v '"State":"running"' | grep -v '^\[$' | grep -v '^\]$' | wc -l || echo "0")
+          NOT_RUNNING=$(docker compose ps --format "table {{.Name}}\t{{.Status}}" | grep -v "Up" | grep -v "NAME" | grep -v "^$" | wc -l | tr -d ' ')
           if [ "$NOT_RUNNING" -gt 0 ]; then
             echo "❌ Niektóre kontenery nie działają"
             docker compose ps
@@ -72,6 +82,7 @@ jobs:
           echo "✅ Wszystkie kontenery działają"
       
       - name: Test Frontend
+        shell: bash
         run: |
           echo "Testowanie frontendu..."
           max_attempts=30
@@ -91,6 +102,7 @@ jobs:
           fi
       
       - name: Test Backend API
+        shell: bash
         run: |
           echo "Testowanie backend API..."
           if ! curl -s -f http://localhost:8080/api/rooms > /dev/null; then
@@ -101,6 +113,7 @@ jobs:
           echo "✅ Backend API odpowiada"
       
       - name: Test AI Chat Status
+        shell: bash
         run: |
           echo "Testowanie statusu chata AI..."
           CHAT_STATUS=$(curl -s http://localhost:8080/api/chat/status || echo "")
@@ -112,6 +125,7 @@ jobs:
           fi
       
       - name: Test AI Chat Response
+        shell: bash
         run: |
           echo "Testowanie odpowiedzi chata AI..."
           CHAT_RESPONSE=$(curl -s -X POST http://localhost:8080/api/chat \
@@ -130,6 +144,7 @@ jobs:
           fi
       
       - name: Test Frontend Rendering
+        shell: bash
         run: |
           echo "Testowanie renderowania frontendu..."
           HTML=$(curl -s http://localhost:3000 || echo "")
@@ -141,11 +156,13 @@ jobs:
       
       - name: Show logs on failure
         if: failure()
+        shell: bash
         run: |
           echo "=== Logi kontenerów ==="
           docker compose logs
       
       - name: Cleanup
         if: always()
+        shell: bash
         run: |
           docker compose down -v || true
