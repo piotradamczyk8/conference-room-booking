@@ -110,8 +110,12 @@ unlock_secrets() {
                 
                 # Dodaj do backend/.env
                 if [ -f backend/.env ]; then
-                    # Usuń istniejący OPENAI_API_KEY jeśli jest pusty
-                    sed -i '' '/^OPENAI_API_KEY=$/d' backend/.env 2>/dev/null || true
+                    # Usuń istniejący OPENAI_API_KEY jeśli jest pusty (kompatybilne z macOS i Linux)
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        sed -i '' '/^OPENAI_API_KEY=$/d' backend/.env 2>/dev/null || true
+                    else
+                        sed -i '/^OPENAI_API_KEY=$/d' backend/.env 2>/dev/null || true
+                    fi
                     echo "" >> backend/.env
                     echo "# === Klucz OpenAI (automatycznie dodany) ===" >> backend/.env
                     echo "$key_content" >> backend/.env
