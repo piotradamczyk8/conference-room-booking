@@ -190,7 +190,7 @@ APP_SECRET=9a23c2c78528b6477a8bf97b3949a3a8
 DATABASE_URL="postgresql://app:secret@database:5432/conference_rooms?serverVersion=16&charset=utf8"
 MESSENGER_TRANSPORT_DSN=amqp://guest:guest@rabbitmq:5672/%2f/messages
 CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
-OPENAI_API_KEY=
+API_PIN=
 EOF
         fi
         print_success "Utworzono backend/.env"
@@ -384,7 +384,7 @@ print_summary() {
     echo -e "  ${BLUE}make logs${NC}     - Podgląd logów"
     echo -e "  ${BLUE}make test${NC}     - Uruchom testy"
     echo ""
-    echo -e "${YELLOW}Uwaga:${NC} Aby korzystać z AI Chat, dodaj klucz OPENAI_API_KEY do pliku .env"
+    echo -e "${YELLOW}Uwaga:${NC} Jeśli nie podałeś kodu podczas instalacji, AI Chat nie będzie działać."
     echo ""
 }
 
