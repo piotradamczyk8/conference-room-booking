@@ -270,12 +270,24 @@ install_dependencies() {
     print_success "Środowisko skonfigurowane"
     
     print_step "Instalacja zależności PHP (composer)..."
-    docker compose exec -T backend composer install --no-interaction --optimize-autoloader 2>&1 | tail -5
+    # Uruchom jako root aby uniknąć problemów z uprawnieniami na Linux
+    docker compose exec -T --user root backend composer install --no-interaction --optimize-autoloader 2>&1 | tail -5
+    # Napraw uprawnienia dla www-data
+    docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/vendor 2>/dev/null || true
     print_success "Zależności PHP zainstalowane"
     
+    # Restart messenger-worker który używa tego samego kodu
+    docker compose restart messenger-worker >/dev/null 2>&1 || true
+    
     print_step "Instalacja zależności JS (npm)..."
-    docker compose exec -T frontend npm install 2>&1 | tail -3
+    # Uruchom jako root aby uniknąć problemów z uprawnieniami na Linux
+    docker compose exec -T --user root frontend npm install 2>&1 | tail -3
     print_success "Zależności JS zainstalowane"
+    
+    # Restart frontendu aby załadował nowe moduły
+    print_step "Restart frontendu..."
+    docker compose restart frontend >/dev/null 2>&1
+    print_success "Frontend zrestartowany"
 }
 
 # Migracje bazy danych

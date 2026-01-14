@@ -107,5 +107,6 @@ COPY . .
 # Ekspozycja portu
 EXPOSE 3000
 
-# Uruchomienie w trybie deweloperskim
-CMD ["npm", "run", "dev"]
+# Skrypt startowy który instaluje zależności jeśli brakuje
+# (rozwiązuje problem z montowaniem pustego volume node_modules)
+CMD ["sh", "-c", "if [ ! -d 'node_modules' ] || [ ! -f 'node_modules/.package-lock.json' ]; then npm install; fi && npm run dev"]
