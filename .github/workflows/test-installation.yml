@@ -1,0 +1,151 @@
+name: Test Installation
+
+on:
+  push:
+    branches: [ main, githubtest-version, mysql-version ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Pozwala uruchomić ręcznie
+
+jobs:
+  test-installation:
+    name: Test install.sh on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Docker (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io docker-compose-plugin
+          sudo systemctl start docker
+          sudo usermod -aG docker $USER
+          docker --version
+          docker compose version
+      
+      - name: Setup Docker (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # Docker jest już dostępny na GitHub Actions macOS runners
+          docker --version
+          docker compose version
+      
+      - name: Setup Docker (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          # Docker Desktop powinien być dostępny, ale sprawdzamy
+          docker --version
+          docker compose version
+      
+      - name: Make install.sh executable
+        run: chmod +x install.sh
+      
+      - name: Run installation script
+        env:
+          API_PIN: ${{ secrets.API_PIN || '1401' }}
+        run: |
+          ./install.sh
+      
+      - name: Wait for services
+        run: |
+          echo "Czekanie na uruchomienie serwisów..."
+          sleep 20
+      
+      - name: Check container status
+        run: |
+          docker compose ps
+          # Sprawdź czy wszystkie kontenery są Up
+          NOT_RUNNING=$(docker compose ps --format json | grep -v '"State":"running"' | grep -v '^\[$' | grep -v '^\]$' | wc -l || echo "0")
+          if [ "$NOT_RUNNING" -gt 0 ]; then
+            echo "❌ Niektóre kontenery nie działają"
+            docker compose ps
+            docker compose logs
+            exit 1
+          fi
+          echo "✅ Wszystkie kontenery działają"
+      
+      - name: Test Frontend
+        run: |
+          echo "Testowanie frontendu..."
+          max_attempts=30
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            if curl -s -f http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Frontend odpowiada (HTTP 200)"
+              break
+            fi
+            sleep 2
+            attempt=$((attempt + 1))
+          done
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ Frontend nie odpowiada"
+            docker compose logs frontend
+            exit 1
+          fi
+      
+      - name: Test Backend API
+        run: |
+          echo "Testowanie backend API..."
+          if ! curl -s -f http://localhost:8080/api/rooms > /dev/null; then
+            echo "❌ Backend API nie odpowiada"
+            docker compose logs backend
+            exit 1
+          fi
+          echo "✅ Backend API odpowiada"
+      
+      - name: Test AI Chat Status
+        run: |
+          echo "Testowanie statusu chata AI..."
+          CHAT_STATUS=$(curl -s http://localhost:8080/api/chat/status || echo "")
+          if echo "$CHAT_STATUS" | grep -q '"available":true'; then
+            echo "✅ Chat AI jest dostępny"
+          else
+            echo "⚠️ Chat AI może nie być skonfigurowany"
+            echo "Status: $CHAT_STATUS"
+          fi
+      
+      - name: Test AI Chat Response
+        run: |
+          echo "Testowanie odpowiedzi chata AI..."
+          CHAT_RESPONSE=$(curl -s -X POST http://localhost:8080/api/chat \
+            -H "Content-Type: application/json" \
+            -d '{"message":"Cześć, jakie sale są dostępne?"}' || echo "")
+          
+          if echo "$CHAT_RESPONSE" | grep -q '"success":true'; then
+            echo "✅ Chat AI odpowiada poprawnie"
+            # Wyciągnij message z JSON
+            MESSAGE=$(echo "$CHAT_RESPONSE" | grep -o '"message":"[^"]*"' | cut -d'"' -f4 | head -c 100)
+            echo "Odpowiedź: ${MESSAGE}..."
+          else
+            echo "❌ Chat AI nie odpowiada poprawnie"
+            echo "Odpowiedź: $CHAT_RESPONSE"
+            exit 1
+          fi
+      
+      - name: Test Frontend Rendering
+        run: |
+          echo "Testowanie renderowania frontendu..."
+          HTML=$(curl -s http://localhost:3000 || echo "")
+          if echo "$HTML" | grep -q "AI RoomBook\|conference"; then
+            echo "✅ Frontend renderuje się poprawnie"
+          else
+            echo "⚠️ Frontend może mieć problemy z renderowaniem"
+          fi
+      
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "=== Logi kontenerów ==="
+          docker compose logs
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker compose down -v || true
