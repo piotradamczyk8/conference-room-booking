@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from './providers';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Footer } from '@/components/layout/Footer';
+import { AIChatWidget } from '@/components/chat/AIChatWidget';
 
 const inter = Inter({ 
   subsets: ['latin', 'latin-ext'],
@@ -11,10 +12,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'RoomBook - System Rezerwacji Sal',
-  description: 'Profesjonalny system zarządzania rezerwacjami sal konferencyjnych',
-  keywords: ['rezerwacje', 'sale konferencyjne', 'kalendarz', 'booking'],
-  authors: [{ name: 'WIP.pl' }],
+  title: 'AI RoomBook - Inteligentny System Rezerwacji Sal',
+  description: 'Inteligentny system zarządzania rezerwacjami sal konferencyjnych z asystentem AI',
+  keywords: ['rezerwacje', 'sale konferencyjne', 'kalendarz', 'booking', 'AI', 'OpenAI'],
+  authors: [{ name: 'Piotr Adamczyk', url: 'https://octadecimal.pl' }],
 };
 
 /**
@@ -50,6 +51,9 @@ export default function RootLayout({
               <Footer />
             </div>
           </div>
+          
+          {/* AI Chat Widget - pływający przycisk */}
+          <AIChatWidget />
         </Providers>
       </body>
     </html>

@@ -1,19 +1,35 @@
-# Conference Room Booking System
+# 🤖 AI RoomBook
 
 [![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![Symfony](https://img.shields.io/badge/Symfony-7.0-000000?logo=symfony&logoColor=white)](https://symfony.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-412991?logo=openai&logoColor=white)](https://openai.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> System zarządzania rezerwacjami sal konferencyjnych z walidacją konfliktów czasowych i powiadomieniami przez RabbitMQ.
+> **Inteligentny system zarządzania rezerwacjami sal konferencyjnych** z asystentem AI, walidacją konfliktów czasowych i powiadomieniami przez RabbitMQ.
+
+---
+
+## ⚠️ WAŻNE - Klucz OpenAI API
+
+> **Do pełnej funkcjonalności asystenta AI wymagany jest klucz OpenAI API.**
+> 
+> Klucz API został **załączony w mailu z zadaniem rekrutacyjnym**.
+> 
+> Aby skonfigurować:
+> 1. Skopiuj `.env.example` do `.env`
+> 2. Wklej klucz API do zmiennej `OPENAI_API_KEY`
+> 
+> Bez klucza system działa normalnie, ale chat AI nie będzie dostępny.
 
 ---
 
 ## Spis treści
 
 - [Funkcjonalności](#funkcjonalności)
+- [Asystent AI](#asystent-ai)
 - [Stack technologiczny](#stack-technologiczny)
 - [Wymagania](#wymagania)
 - [Szybki start](#szybki-start)
@@ -28,18 +44,25 @@
 
 ## Funkcjonalności
 
+### 🤖 Asystent AI (OpenAI GPT)
+- ✅ Chat do sprawdzania dostępności sal w języku naturalnym
+- ✅ Odpowiedzi na pytania o wolne terminy i rezerwacje
+- ✅ Integracja z REST API backendu
+
 ### Backend (REST API)
 - ✅ CRUD dla sal konferencyjnych
 - ✅ CRUD dla rezerwacji
 - ✅ Walidacja konfliktów czasowych (brak nakładających się rezerwacji)
 - ✅ Asynchroniczne powiadomienia przez RabbitMQ
 - ✅ Repository Pattern z interfejsami
+- ✅ Endpoint dla AI chat
 
 ### Frontend (Panel administracyjny)
 - ✅ Lista sal konferencyjnych
 - ✅ Formularze dodawania i edycji sal
 - ✅ Interaktywny kalendarz rezerwacji (FullCalendar)
 - ✅ Responsywny interfejs (Tailwind CSS)
+- ✅ Widget AI Chat
 
 ---
 

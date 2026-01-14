@@ -3,13 +3,13 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 
 /**
- * Strona główna - Dashboard w stylu WIP.pl
+ * Strona główna - Dashboard AI RoomBook
  */
 export default function HomePage() {
   return (
     <PageWrapper 
       title="Dashboard" 
-      subtitle="Witaj w systemie rezerwacji sal konferencyjnych"
+      subtitle="Witaj w AI RoomBook - inteligentnym systemie rezerwacji"
     >
       <div className="max-w-6xl">
         {/* Hero section */}
@@ -17,11 +17,11 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
               <h2 className="text-2xl font-bold mb-2" style={{ color: '#ffffff' }}>
-                Zarządzaj rezerwacjami z łatwością
+                🤖 Inteligentne zarządzanie rezerwacjami
               </h2>
               <p className="max-w-lg" style={{ color: 'rgba(255, 255, 255, 0.95)' }}>
-                Prosty i intuicyjny system do rezerwacji sal konferencyjnych. 
-                Sprawdź dostępność, zarezerwuj salę i zarządzaj swoimi spotkaniami.
+                System z asystentem AI - zapytaj o wolne sale, sprawdź dostępność lub po prostu zarezerwuj termin. 
+                Kliknij ikonę czatu w prawym dolnym rogu!
               </p>
             </div>
             <Link
@@ -91,6 +91,33 @@ export default function HomePage() {
               </div>
             </div>
           </Link>
+        </div>
+
+        {/* AI Assistant info */}
+        <div className="card p-6 bg-gradient-to-r from-primary-50 to-accent/10 border-primary-200 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                🤖 Asystent AI
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  Online
+                </span>
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Kliknij ikonę czatu w prawym dolnym rogu, aby porozmawiać z asystentem. Możesz zapytać:
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• &quot;Jakie sale są wolne dziś po 14:00?&quot;</li>
+                <li>• &quot;Pokaż rezerwacje na jutro&quot;</li>
+                <li>• &quot;Która sala ma projektor?&quot;</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         {/* Info section */}
