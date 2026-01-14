@@ -111,9 +111,20 @@ configure_api_pin() {
     if echo "$api_response" | grep -q '"success":true'; then
         print_success "Kod prawidłowy!"
         
-        # Dodaj PIN do backend/.env
+        # Dodaj PIN do głównego .env (dla Docker Compose)
+        if [ -f .env ]; then
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                sed -i '' '/^API_PIN=/d' .env 2>/dev/null || true
+            else
+                sed -i '/^API_PIN=/d' .env 2>/dev/null || true
+            fi
+            echo "" >> .env
+            echo "# PIN do API" >> .env
+            echo "API_PIN=$pin" >> .env
+        fi
+        
+        # Dodaj PIN do backend/.env (dla Symfony)
         if [ -f backend/.env ]; then
-            # Usuń istniejący API_PIN jeśli jest
             if [[ "$OSTYPE" == "darwin"* ]]; then
                 sed -i '' '/^API_PIN=/d' backend/.env 2>/dev/null || true
             else
