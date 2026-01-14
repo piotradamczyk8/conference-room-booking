@@ -68,6 +68,79 @@ check_requirements() {
     print_success "Docker uruchomiony"
 }
 
+# Rozpakowanie sekretów (klucz OpenAI)
+unlock_secrets() {
+    print_header "🔐 Konfiguracja klucza API"
+    
+    if [ ! -f secrets.zip ]; then
+        print_warning "Plik secrets.zip nie został znaleziony"
+        print_warning "Asystent AI nie będzie działać bez klucza OpenAI"
+        return 0
+    fi
+    
+    echo ""
+    echo -e "${CYAN}Aby odblokować asystenta AI, podaj PIN z maila rekrutacyjnego.${NC}"
+    echo -e "${YELLOW}(Zostaw puste aby pominąć - AI Chat nie będzie działać)${NC}"
+    echo ""
+    
+    local max_attempts=3
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        read -s -p "🔑 Podaj PIN: " pin
+        echo ""
+        
+        if [ -z "$pin" ]; then
+            print_warning "Pominięto konfigurację klucza API"
+            return 0
+        fi
+        
+        # Próba rozpakowania
+        if unzip -P "$pin" -o secrets.zip -d /tmp/secrets_temp &>/dev/null; then
+            print_success "PIN prawidłowy!"
+            
+            # Odczytaj zawartość klucza
+            if [ -f /tmp/secrets_temp/key.txt ]; then
+                local key_content=$(cat /tmp/secrets_temp/key.txt)
+                
+                # Dodaj do głównego .env
+                echo "" >> .env
+                echo "# === Klucz OpenAI (automatycznie dodany) ===" >> .env
+                echo "$key_content" >> .env
+                
+                # Dodaj do backend/.env
+                if [ -f backend/.env ]; then
+                    # Usuń istniejący OPENAI_API_KEY jeśli jest pusty
+                    sed -i '' '/^OPENAI_API_KEY=$/d' backend/.env 2>/dev/null || true
+                    echo "" >> backend/.env
+                    echo "# === Klucz OpenAI (automatycznie dodany) ===" >> backend/.env
+                    echo "$key_content" >> backend/.env
+                fi
+                
+                print_success "Klucz OpenAI został skonfigurowany!"
+                
+                # Wyczyść tymczasowe pliki
+                rm -rf /tmp/secrets_temp
+                return 0
+            else
+                print_error "Nie znaleziono pliku key.txt w archiwum"
+                rm -rf /tmp/secrets_temp
+                return 1
+            fi
+        else
+            attempt=$((attempt + 1))
+            if [ $attempt -le $max_attempts ]; then
+                print_error "Nieprawidłowy PIN. Pozostało prób: $((max_attempts - attempt + 1))"
+            else
+                print_error "Przekroczono limit prób"
+                print_warning "Asystent AI nie będzie działać bez klucza OpenAI"
+            fi
+        fi
+    done
+    
+    return 0
+}
+
 # Konfiguracja środowiska
 setup_environment() {
     print_header "⚙️  Konfiguracja środowiska"
@@ -306,6 +379,7 @@ main() {
     
     check_requirements
     setup_environment
+    unlock_secrets
     stop_existing
     build_and_start
     wait_for_services

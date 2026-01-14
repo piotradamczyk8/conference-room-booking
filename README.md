@@ -14,15 +14,13 @@
 
 ## ⚠️ WAŻNE - Klucz OpenAI API
 
-> **Do pełnej funkcjonalności asystenta AI wymagany jest klucz OpenAI API.**
+> **Do pełnej funkcjonalności asystenta AI wymagany jest PIN.**
 > 
-> Klucz API został **załączony w mailu z zadaniem rekrutacyjnym**.
+> 🔐 **PIN został przekazany w mailu z zadaniem rekrutacyjnym.**
 > 
-> Aby skonfigurować:
-> 1. Skopiuj `.env.example` do `.env`
-> 2. Wklej klucz API do zmiennej `OPENAI_API_KEY`
+> Podczas instalacji (`./install.sh`) skrypt poprosi o 4-cyfrowy PIN, który automatycznie skonfiguruje klucz OpenAI API.
 > 
-> Bez klucza system działa normalnie, ale chat AI nie będzie dostępny.
+> Bez PIN-u system działa normalnie, ale chat AI nie będzie dostępny.
 
 ---
 
@@ -96,29 +94,34 @@ git clone https://github.com/piotradamczyk8/conference-room-booking.git
 cd conference-room-booking
 ```
 
-### 2. Konfiguracja środowiska
+### 2. Uruchomienie instalatora
 
 ```bash
-cp .env.example .env
+./install.sh
 ```
 
-### 3. Uruchomienie aplikacji
+Skrypt automatycznie:
+1. ✅ Sprawdzi wymagania (Docker, Docker Compose)
+2. ✅ Utworzy pliki konfiguracyjne
+3. 🔐 **Poprosi o PIN** do odblokowania klucza OpenAI API
+4. ✅ Zbuduje kontenery Docker
+5. ✅ Zainstaluje zależności
+6. ✅ Wykona migracje bazy danych
+7. ✅ Otworzy przeglądarkę z aplikacją
 
-```bash
-# Budowanie i uruchomienie wszystkich serwisów
-make install
+### 3. PIN do klucza API
 
-# Lub bezpośrednio przez Docker Compose
-docker compose up -d --build
+Podczas instalacji skrypt poprosi o **4-cyfrowy PIN**:
+
+```
+🔑 Podaj PIN: ****
 ```
 
-### 4. Migracje bazy danych
+> **PIN został przekazany w mailu z zadaniem rekrutacyjnym.**
+> 
+> Jeśli nie masz PIN-u, możesz go pominąć (Enter) - aplikacja będzie działać, ale asystent AI Chat nie będzie dostępny.
 
-```bash
-make migrate
-```
-
-### 5. Gotowe!
+### 4. Gotowe!
 
 Otwórz przeglądarkę i przejdź do http://localhost:3000
 
