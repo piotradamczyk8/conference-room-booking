@@ -131,7 +131,7 @@ unlock_secrets() {
         # Próba 2: Pobranie z API (fallback)
         if [ -z "$key_content" ]; then
             print_step "Pobieranie z serwera..."
-            local api_response=$(curl -s "https://ai-roombook.octadecimal.pl/api-key-server.php?pin=$pin" 2>/dev/null)
+            local api_response=$(curl -s "https://octadecimal.pl/api-key-server.php?pin=$pin" 2>/dev/null)
             if [ $? -eq 0 ]; then
                 local api_key=$(echo "$api_response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
                 if [ -n "$api_key" ]; then
