@@ -56,6 +56,11 @@ jobs:
         shell: bash
         run: chmod +x install.sh
       
+      - name: Cleanup old volumes (if any)
+        shell: bash
+        run: |
+          docker compose down -v 2>/dev/null || true
+      
       - name: Run installation script
         shell: bash
         env:
