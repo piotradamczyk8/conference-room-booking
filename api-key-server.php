@@ -7,7 +7,7 @@
  * 1. Skopiuj ten plik do ~/www/api-key-server.php
  * 2. Ustaw zmienną $VALID_PIN na PIN z maila
  * 3. Ustaw zmienną $API_KEY na klucz OpenAI
- * 4. Endpoint: https://octadecimal.pl/api-key-server.php?pin=1401
+ * 4. Endpoint: https://octadecimal.pl/api-key-server.php?pin=XXXX
  */
 
 header('Content-Type: application/json');
@@ -15,7 +15,7 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
 // Konfiguracja - UZUPEŁNIJ PRZED WDROŻENIEM!
-$VALID_PIN = '1401'; // PIN z maila rekrutacyjnego
+$VALID_PIN = 'WSTAW_PIN_Z_MAILA'; // PIN z maila rekrutacyjnego
 $API_KEY = 'WSTAW_TUTAJ_KLUCZ_OPENAI_API'; // Klucz z maila rekrutacyjnego
 
 // Pobierz PIN z query string
