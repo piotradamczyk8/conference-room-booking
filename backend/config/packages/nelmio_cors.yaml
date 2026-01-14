@@ -1,0 +1,29 @@
+# Konfiguracja CORS dla REST API
+nelmio_cors:
+    defaults:
+        # Dozwolone originy (regex)
+        origin_regex: true
+        allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
+        
+        # Dozwolone metody HTTP
+        allow_methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+        
+        # Dozwolone nagłówki
+        allow_headers: ['Content-Type', 'Authorization', 'X-Requested-With']
+        
+        # Nagłówki eksponowane dla klienta
+        expose_headers: ['Link', 'X-Total-Count']
+        
+        # Maksymalny czas cache'owania preflight
+        max_age: 3600
+        
+        # Czy wysyłać credentials (cookies)
+        allow_credentials: false
+
+    paths:
+        # Konfiguracja dla wszystkich endpointów API
+        '^/api/':
+            allow_origin: ['*']
+            allow_headers: ['*']
+            allow_methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+            max_age: 3600
