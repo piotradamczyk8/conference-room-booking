@@ -1,22 +1,13 @@
 import Link from 'next/link';
+import { PageWrapper } from '@/components/layout/PageWrapper';
 
 /**
  * Strona główna - Dashboard.
  */
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Conference Room Booking
-          </h1>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <PageWrapper title="Dashboard">
+      <div className="max-w-4xl">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Card: Sale */}
           <Link
@@ -111,7 +102,7 @@ export default function HomePage() {
         </div>
 
         {/* Info section */}
-        <div className="mt-8 card p-6">
+        <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Witaj w systemie rezerwacji sal konferencyjnych
           </h3>
@@ -121,15 +112,15 @@ export default function HomePage() {
             tworzyć rezerwacje przez interaktywny kalendarz.
           </p>
           <div className="mt-4 flex gap-4">
-            <Link href="/rooms" className="btn-primary">
+            <Link href="/rooms" className="inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors">
               Przejdź do sal
             </Link>
-            <Link href="/reservations" className="btn-secondary">
+            <Link href="/reservations" className="inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium bg-gray-200 text-gray-900 hover:bg-gray-300 transition-colors">
               Zobacz kalendarz
             </Link>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </PageWrapper>
   );
 }
