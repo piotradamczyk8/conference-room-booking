@@ -171,7 +171,7 @@ FRONTEND_PORT=3000
 BACKEND_PORT=8080
 RABBITMQ_MANAGEMENT_PORT=15672
 DATABASE_PORT=5432
-OPENAI_API_KEY=
+API_PIN=
 EOF
             print_success "Utworzono podstawowy .env"
         fi
