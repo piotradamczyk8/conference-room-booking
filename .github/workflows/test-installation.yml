@@ -14,8 +14,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS pominięty - wymaga Docker Desktop (płatne lub dodatkowa konfiguracja)
-        os: [ubuntu-latest, windows-latest]
+        # macOS pominięty - wymaga Docker Desktop
+        # Windows pominięty - wymaga WSL2/Linux containers (problemy z Windows containers)
+        os: [ubuntu-latest]
     
     steps:
       - name: Checkout code
@@ -46,9 +47,12 @@ jobs:
       - name: Setup Docker (Windows)
         if: runner.os == 'Windows'
         run: |
-          # Docker Desktop powinien być dostępny na Windows runners
+          # Windows runners używają WSL2 dla Linux containers
+          # Docker Desktop powinien być dostępny
           docker --version
           docker compose version
+          # Upewnij się że używamy Linux containers
+          docker version --format '{{.Server.OSType}}'
       
       - name: Make install.sh executable
         shell: bash
