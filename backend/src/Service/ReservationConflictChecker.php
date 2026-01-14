@@ -12,7 +12,7 @@ use App\Repository\ReservationRepositoryInterface;
  * Serwis odpowiedzialny za sprawdzanie konfliktów rezerwacji.
  * Zgodny z Single Responsibility Principle.
  */
-final readonly class ReservationConflictChecker
+final readonly class ReservationConflictChecker implements ReservationConflictCheckerInterface
 {
     public function __construct(
         private ReservationRepositoryInterface $reservationRepository,

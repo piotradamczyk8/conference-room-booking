@@ -228,23 +228,92 @@ curl -X POST http://localhost:8080/api/reservations \
 
 ## Testowanie
 
-### Backend (PHPUnit)
+Projekt zawiera kompleksowe testy automatyczne dla backendu (PHPUnit) oraz skrypt do wygodnego uruchamiania testów.
+
+### Struktura testów
+
+| Typ | Lokalizacja | Opis |
+|-----|-------------|------|
+| **Unit** | `backend/tests/Unit/` | Testy jednostkowe serwisów |
+| **Integration** | `backend/tests/Integration/` | Testy repozytoriów z bazą danych |
+| **Functional** | `backend/tests/Functional/` | Testy API (end-to-end) |
+
+### Szybki start - skrypt `run-tests.sh`
+
+Najłatwiejszy sposób uruchomienia testów:
 
 ```bash
-make test-backend
+# Wszystkie testy (backend + frontend)
+./run-tests.sh
 
-# Lub bezpośrednio
-docker compose exec backend php bin/phpunit
+# Tylko testy jednostkowe
+./run-tests.sh unit
+
+# Tylko testy funkcjonalne (API)
+./run-tests.sh functional
+
+# Szybka weryfikacja (unit + PHPStan)
+./run-tests.sh quick
+
+# Pomoc - lista wszystkich opcji
+./run-tests.sh help
 ```
 
-### Frontend (Jest)
+### Dostępne opcje skryptu
+
+| Komenda | Opis |
+|---------|------|
+| `./run-tests.sh all` | Wszystkie testy (domyślne) |
+| `./run-tests.sh unit` | Tylko testy jednostkowe |
+| `./run-tests.sh integration` | Tylko testy integracyjne |
+| `./run-tests.sh functional` | Tylko testy funkcjonalne API |
+| `./run-tests.sh backend` | Wszystkie testy backendowe |
+| `./run-tests.sh frontend` | Testy frontendowe |
+| `./run-tests.sh phpstan` | Analiza statyczna (PHPStan) |
+| `./run-tests.sh cs` | Sprawdzenie stylu kodu (PHP CS Fixer) |
+| `./run-tests.sh quick` | Szybka weryfikacja (unit + phpstan) |
+
+### Alternatywne metody uruchomienia
+
+#### Przez Makefile
 
 ```bash
-make test-frontend
-
-# Lub bezpośrednio
-cd frontend && npm test
+make test           # Wszystkie testy
+make test-backend   # Testy PHP (PHPUnit)
+make test-frontend  # Testy JS (Jest)
 ```
+
+#### Bezpośrednio przez Docker
+
+```bash
+# Backend - wszystkie testy
+docker compose exec backend ./vendor/bin/phpunit
+
+# Backend - konkretny testsuite
+docker compose exec backend ./vendor/bin/phpunit --testsuite Unit
+docker compose exec backend ./vendor/bin/phpunit --testsuite Functional
+
+# Frontend
+docker compose exec frontend npm test
+```
+
+### Pokrycie kodu
+
+Raport pokrycia kodu generowany jest automatycznie w `backend/var/coverage/`:
+
+```bash
+# Uruchom testy z generowaniem raportu
+docker compose exec backend ./vendor/bin/phpunit --coverage-html var/coverage
+
+# Otwórz raport w przeglądarce
+open backend/var/coverage/index.html
+```
+
+### Statystyki testów
+
+- **58 testów** - 100% przechodzących
+- **126 assertions** - weryfikujących poprawność
+- **3 testsuites** - Unit, Integration, Functional
 
 ---
 

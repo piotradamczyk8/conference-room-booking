@@ -66,7 +66,7 @@ final class ReservationRepositoryTest extends KernelTestCase
         );
 
         $this->assertCount(1, $overlapping);
-        $this->assertSame($existingReservation->getId()->toString(), $overlapping[0]->getId()->toString());
+        $this->assertSame((string) $existingReservation->getId(), (string) $overlapping[0]->getId());
     }
 
     public function testFindOverlappingReturnsEmptyWhenNoConflict(): void
@@ -99,7 +99,7 @@ final class ReservationRepositoryTest extends KernelTestCase
             $this->room,
             new \DateTimeImmutable('2026-01-15 10:00:00'),
             new \DateTimeImmutable('2026-01-15 11:00:00'),
-            $existingReservation->getId()->toString()
+            (string) $existingReservation->getId()
         );
 
         $this->assertCount(0, $overlapping);
