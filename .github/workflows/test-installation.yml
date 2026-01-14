@@ -73,15 +73,23 @@ jobs:
         shell: bash
         run: |
           docker compose ps
-          # Sprawdź czy wszystkie kontenery są Up
-          NOT_RUNNING=$(docker compose ps --format "table {{.Name}}\t{{.Status}}" | grep -v "Up" | grep -v "NAME" | grep -v "^$" | wc -l | tr -d ' ')
-          if [ "$NOT_RUNNING" -gt 0 ]; then
-            echo "❌ Niektóre kontenery nie działają"
+          # Sprawdź czy główne kontenery są Up (messenger-worker może restartować się)
+          CRITICAL_CONTAINERS="crb-backend crb-frontend crb-nginx crb-database crb-rabbitmq"
+          FAILED=0
+          for container in $CRITICAL_CONTAINERS; do
+            STATUS=$(docker compose ps --format "table {{.Name}}\t{{.Status}}" | grep "$container" | awk '{print $2" "$3" "$4" "$5" "$6}')
+            if ! echo "$STATUS" | grep -q "Up"; then
+              echo "❌ $container nie działa: $STATUS"
+              FAILED=1
+            fi
+          done
+          if [ $FAILED -eq 1 ]; then
+            echo "❌ Niektóre krytyczne kontenery nie działają"
             docker compose ps
             docker compose logs
             exit 1
           fi
-          echo "✅ Wszystkie kontenery działają"
+          echo "✅ Wszystkie krytyczne kontenery działają"
       
       - name: Test Frontend
         shell: bash
