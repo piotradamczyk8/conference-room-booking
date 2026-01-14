@@ -7,7 +7,7 @@
  * 1. Skopiuj ten plik do ~/www/api-key-server.php
  * 2. Ustaw zmienną $VALID_PIN na PIN z maila
  * 3. Ustaw zmienną $API_KEY na klucz OpenAI
- * 4. Endpoint: https://ai-roombook.octadecimal.pl/api-key-server.php?pin=1401
+ * 4. Endpoint: https://octadecimal.pl/api-key-server.php?pin=1401
  */
 
 header('Content-Type: application/json');

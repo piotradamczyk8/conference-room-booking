@@ -28,7 +28,7 @@ Ustaw:
 ### 3. Sprawdź działanie
 
 ```bash
-curl "https://ai-roombook.octadecimal.pl/api-key-server.php?pin=1401"
+curl "https://octadecimal.pl/api-key-server.php?pin=1401"
 ```
 
 Powinno zwrócić:
