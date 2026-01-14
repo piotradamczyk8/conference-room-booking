@@ -210,8 +210,8 @@ stop_existing() {
     print_header "🛑 Zatrzymywanie istniejących kontenerów"
     
     if docker compose ps -q 2>/dev/null | grep -q .; then
-        docker compose down --remove-orphans 2>/dev/null || true
-        print_success "Kontenery zatrzymane"
+        docker compose down -v --remove-orphans 2>/dev/null || true
+        print_success "Kontenery zatrzymane (volumes usunięte)"
     else
         print_success "Brak uruchomionych kontenerów"
     fi
