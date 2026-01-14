@@ -1,0 +1,45 @@
+# Główna konfiguracja Symfony Framework
+framework:
+    secret: '%env(APP_SECRET)%'
+    
+    # Obsługa HTTP
+    http_method_override: false
+    handle_all_throwables: true
+
+    # Routing
+    router:
+        utf8: true
+        strict_requirements: ~
+
+    # PHP native session handler
+    session:
+        handler_id: null
+        cookie_secure: auto
+        cookie_samesite: lax
+
+    # CSRF protection (wyłączone dla API)
+    csrf_protection: false
+
+    # Walidacja
+    validation:
+        email_validation_mode: html5
+
+    # Serializacja
+    serializer:
+        enable_attributes: true
+
+    # Property access
+    property_access:
+        throw_exception_on_invalid_index: true
+
+    # UID
+    uid:
+        default_uuid_version: 7
+        time_based_uuid_version: 7
+
+# Konfiguracja dla środowiska testowego
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file

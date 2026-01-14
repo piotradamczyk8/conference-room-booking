@@ -1,0 +1,13 @@
+# Konfiguracja PHPStan - statyczna analiza kodu
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - src/Kernel.php
+    symfony:
+        container_xml_path: var/cache/dev/App_KernelDevDebugContainer.xml
+    ignoreErrors:
+        # Ignorowanie błędów z Doctrine proxy classes
+        - '#Call to an undefined method [a-zA-Z0-9\\_]+Repository::#'

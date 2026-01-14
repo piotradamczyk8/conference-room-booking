@@ -1,0 +1,6 @@
+# Główna konfiguracja routingu
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute

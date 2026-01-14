@@ -1,0 +1,28 @@
+# Konfiguracja serwisów i Dependency Injection
+parameters:
+
+services:
+    # Domyślna konfiguracja dla serwisów w tym pliku
+    _defaults:
+        autowire: true      # Automatyczne wstrzykiwanie zależności przez type-hint
+        autoconfigure: true # Automatyczna konfiguracja tagów (np. console commands)
+
+    # Rejestracja wszystkich klas z src/ jako serwisy
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # Kontrolery jako serwisy
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
+    # Repository bindings - interfejsy do implementacji
+    App\Repository\RoomRepositoryInterface:
+        class: App\Repository\RoomRepository
+
+    App\Repository\ReservationRepositoryInterface:
+        class: App\Repository\ReservationRepository

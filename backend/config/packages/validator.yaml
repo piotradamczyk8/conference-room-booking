@@ -1,0 +1,9 @@
+# Konfiguracja walidatora Symfony
+framework:
+    validation:
+        # Włączenie walidacji przez atrybuty PHP
+        enable_attributes: true
+        
+        # Domyślna grupa walidacji
+        # auto_mapping:
+        #     App\Entity\: []

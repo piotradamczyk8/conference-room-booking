@@ -1,0 +1,44 @@
+# Konfiguracja Symfony Messenger z RabbitMQ
+framework:
+    messenger:
+        # Opcje niepowodzenia - gdzie trafiają nieudane wiadomości
+        failure_transport: failed
+
+        # Transporty
+        transports:
+            # Transport asynchroniczny (RabbitMQ)
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    # Nazwa kolejki
+                    queues:
+                        messages: ~
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 0
+
+            # Transport dla nieudanych wiadomości
+            failed:
+                dsn: 'doctrine://default?queue_name=failed'
+
+        # Routing wiadomości do transportów
+        routing:
+            # Wszystkie wiadomości z namespace App\Message trafiają do async
+            'App\Message\ReservationCreatedMessage': async
+
+# Konfiguracja dla środowiska deweloperskiego
+when@dev:
+    framework:
+        messenger:
+            transports:
+                async:
+                    dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+
+# Konfiguracja dla testów - synchroniczny transport
+when@test:
+    framework:
+        messenger:
+            transports:
+                async: 'in-memory://'
