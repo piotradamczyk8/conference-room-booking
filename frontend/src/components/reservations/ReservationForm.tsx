@@ -7,21 +7,44 @@ import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { useRooms } from '@/hooks/useRooms';
 import { useCreateReservation, useUpdateReservation } from '@/hooks/useReservations';
-import { toDateTimeLocalString } from '@/lib/utils/date';
 import type { Reservation } from '@/types';
+
+// Funkcje pomocnicze do formatowania daty/czasu
+function toDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function toTimeString(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+function combineDateAndTime(dateStr: string, timeStr: string): Date {
+  return new Date(`${dateStr}T${timeStr}`);
+}
 
 // Schema walidacji
 const reservationSchema = z.object({
   roomId: z.string().min(1, 'Wybierz salę'),
   reservedBy: z.string().min(2, 'Imię i nazwisko musi mieć minimum 2 znaki'),
   title: z.string().optional(),
-  startTime: z.string().min(1, 'Wybierz datę i godzinę rozpoczęcia'),
-  endTime: z.string().min(1, 'Wybierz datę i godzinę zakończenia'),
+  startDate: z.string().min(1, 'Wybierz datę rozpoczęcia'),
+  startTime: z.string().min(1, 'Wybierz godzinę rozpoczęcia'),
+  endDate: z.string().min(1, 'Wybierz datę zakończenia'),
+  endTime: z.string().min(1, 'Wybierz godzinę zakończenia'),
   notes: z.string().optional(),
 }).refine(
-  (data) => new Date(data.endTime) > new Date(data.startTime),
+  (data) => {
+    const start = combineDateAndTime(data.startDate, data.startTime);
+    const end = combineDateAndTime(data.endDate, data.endTime);
+    return end > start;
+  },
   {
-    message: 'Godzina zakończenia musi być późniejsza niż rozpoczęcia',
+    message: 'Czas zakończenia musi być późniejszy niż rozpoczęcia',
     path: ['endTime'],
   }
 );
@@ -54,20 +77,26 @@ export function ReservationForm({
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   // Domyślne wartości formularza
+  const getDefaultDate = (date?: Date | string): string => {
+    if (!date) return toDateString(new Date());
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return toDateString(d);
+  };
+
+  const getDefaultTime = (date?: Date | string, fallback: string = '09:00'): string => {
+    if (!date) return fallback;
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return toTimeString(d);
+  };
+
   const defaultValues: ReservationFormData = {
     roomId: reservation?.room.id || defaultRoomId || '',
     reservedBy: reservation?.reservedBy || '',
     title: reservation?.title || '',
-    startTime: reservation?.startTime 
-      ? toDateTimeLocalString(new Date(reservation.startTime))
-      : defaultStartTime 
-        ? toDateTimeLocalString(defaultStartTime)
-        : '',
-    endTime: reservation?.endTime 
-      ? toDateTimeLocalString(new Date(reservation.endTime))
-      : defaultEndTime 
-        ? toDateTimeLocalString(defaultEndTime)
-        : '',
+    startDate: getDefaultDate(reservation?.startTime || defaultStartTime),
+    startTime: getDefaultTime(reservation?.startTime || defaultStartTime, '09:00'),
+    endDate: getDefaultDate(reservation?.endTime || defaultEndTime),
+    endTime: getDefaultTime(reservation?.endTime || defaultEndTime, '10:00'),
     notes: reservation?.notes || '',
   };
 
@@ -81,12 +110,15 @@ export function ReservationForm({
   });
 
   const onSubmit = async (data: ReservationFormData) => {
+    const startDateTime = combineDateAndTime(data.startDate, data.startTime);
+    const endDateTime = combineDateAndTime(data.endDate, data.endTime);
+
     const payload = {
       roomId: data.roomId,
       reservedBy: data.reservedBy,
       title: data.title || undefined,
-      startTime: new Date(data.startTime).toISOString(),
-      endTime: new Date(data.endTime).toISOString(),
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
       notes: data.notes || undefined,
     };
 
@@ -155,49 +187,95 @@ export function ReservationForm({
       />
 
       {/* Data i godzina rozpoczęcia */}
-      <div>
-        <label 
-          htmlFor="startTime" 
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Data i godzina rozpoczęcia *
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Rozpoczęcie *
         </label>
-        <input
-          type="datetime-local"
-          id="startTime"
-          {...register('startTime')}
-          className={`
-            w-full px-3 py-2 border rounded-lg
-            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-            ${errors.startTime ? 'border-red-500' : 'border-gray-300'}
-          `}
-        />
-        {errors.startTime && (
-          <p className="mt-1 text-sm text-red-600">{errors.startTime.message}</p>
-        )}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="startDate" className="block text-xs text-gray-500 mb-1">
+              Data
+            </label>
+            <input
+              type="date"
+              id="startDate"
+              {...register('startDate')}
+              className={`
+                w-full px-3 py-2 border rounded-lg
+                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                ${errors.startDate ? 'border-red-500' : 'border-gray-300'}
+              `}
+            />
+            {errors.startDate && (
+              <p className="mt-1 text-sm text-red-600">{errors.startDate.message}</p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="startTime" className="block text-xs text-gray-500 mb-1">
+              Godzina
+            </label>
+            <input
+              type="time"
+              id="startTime"
+              {...register('startTime')}
+              step="900"
+              className={`
+                w-full px-3 py-2 border rounded-lg
+                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                ${errors.startTime ? 'border-red-500' : 'border-gray-300'}
+              `}
+            />
+            {errors.startTime && (
+              <p className="mt-1 text-sm text-red-600">{errors.startTime.message}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Data i godzina zakończenia */}
-      <div>
-        <label 
-          htmlFor="endTime" 
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Data i godzina zakończenia *
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Zakończenie *
         </label>
-        <input
-          type="datetime-local"
-          id="endTime"
-          {...register('endTime')}
-          className={`
-            w-full px-3 py-2 border rounded-lg
-            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-            ${errors.endTime ? 'border-red-500' : 'border-gray-300'}
-          `}
-        />
-        {errors.endTime && (
-          <p className="mt-1 text-sm text-red-600">{errors.endTime.message}</p>
-        )}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="endDate" className="block text-xs text-gray-500 mb-1">
+              Data
+            </label>
+            <input
+              type="date"
+              id="endDate"
+              {...register('endDate')}
+              className={`
+                w-full px-3 py-2 border rounded-lg
+                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                ${errors.endDate ? 'border-red-500' : 'border-gray-300'}
+              `}
+            />
+            {errors.endDate && (
+              <p className="mt-1 text-sm text-red-600">{errors.endDate.message}</p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="endTime" className="block text-xs text-gray-500 mb-1">
+              Godzina
+            </label>
+            <input
+              type="time"
+              id="endTime"
+              {...register('endTime')}
+              step="900"
+              className={`
+                w-full px-3 py-2 border rounded-lg
+                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                ${errors.endTime ? 'border-red-500' : 'border-gray-300'}
+              `}
+            />
+            {errors.endTime && (
+              <p className="mt-1 text-sm text-red-600">{errors.endTime.message}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Notatki */}
@@ -222,7 +300,7 @@ export function ReservationForm({
         <Button
           type="submit"
           variant="primary"
-          isLoading={isLoading}
+          loading={isLoading}
         >
           {mode === 'create' ? 'Utwórz rezerwację' : 'Zapisz zmiany'}
         </Button>

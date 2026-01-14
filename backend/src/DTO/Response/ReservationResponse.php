@@ -27,15 +27,18 @@ final readonly class ReservationResponse
      */
     public static function fromEntity(Reservation $reservation): self
     {
+        // Konwertuj daty na UTC dla spójności z frontendem
+        $utc = new \DateTimeZone('UTC');
+        
         return new self(
             id: (string) $reservation->getId(),
             room: RoomSummary::fromEntity($reservation->getRoom()),
             reservedBy: $reservation->getReservedBy(),
             title: $reservation->getTitle(),
-            startTime: $reservation->getStartTime()->format(\DateTimeInterface::ATOM),
-            endTime: $reservation->getEndTime()->format(\DateTimeInterface::ATOM),
+            startTime: $reservation->getStartTime()->setTimezone($utc)->format('Y-m-d\TH:i:s\Z'),
+            endTime: $reservation->getEndTime()->setTimezone($utc)->format('Y-m-d\TH:i:s\Z'),
             notes: $reservation->getNotes(),
-            createdAt: $reservation->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            createdAt: $reservation->getCreatedAt()->setTimezone($utc)->format('Y-m-d\TH:i:s\Z'),
         );
     }
 }

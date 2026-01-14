@@ -81,21 +81,18 @@ export function useCreateReservation() {
 
 /**
  * Hook do aktualizacji rezerwacji
+ * UWAGA: invalidateQueries jest wyłączone - caller powinien samodzielnie wywołać refetch()
+ * po zakończeniu mutacji, aby uniknąć race conditions
  */
 export function useUpdateReservation() {
-  const queryClient = useQueryClient();
   const { showToast } = useToast();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateReservationData }) =>
       reservationsApi.update(id, data),
     onSuccess: (updatedReservation) => {
-      // Unieważnij cache
-      queryClient.invalidateQueries({ queryKey: reservationKeys.lists() });
-      queryClient.invalidateQueries({ 
-        queryKey: reservationKeys.detail(updatedReservation.id) 
-      });
-      
+      // NIE wywołujemy invalidateQueries tutaj - caller zrobi refetch()
+      // To zapobiega race conditions gdzie GET pobiera dane przed zapisem
       showToast({
         type: 'success',
         message: `Rezerwacja "${updatedReservation.title}" została zaktualizowana`,
