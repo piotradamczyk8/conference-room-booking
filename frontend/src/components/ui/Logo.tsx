@@ -7,8 +7,8 @@ interface LogoProps {
 }
 
 /**
- * Logo aplikacji w stylu WIP.pl
- * Granatowy prostokąt z ikoną kalendarza/sali
+ * Logo aplikacji AI RoomBook w stylu WIP.pl
+ * Granatowy prostokąt z ikoną AI + kalendarza
  */
 export function Logo({ size = 'md', variant = 'full', className = '' }: LogoProps) {
   const sizes = {
@@ -21,7 +21,7 @@ export function Logo({ size = 'md', variant = 'full', className = '' }: LogoProp
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {/* Ikona - prostokąt z symbolem */}
+      {/* Ikona - prostokąt z symbolem AI */}
       <div 
         className="flex items-center justify-center rounded-lg bg-gradient-to-br from-primary-600 to-primary-800"
         style={{ width: iconSize + 8, height: iconSize + 8 }}
@@ -33,17 +33,14 @@ export function Logo({ size = 'md', variant = 'full', className = '' }: LogoProp
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Ikona sali konferencyjnej / kalendarz */}
-          <rect x="3" y="4" width="18" height="16" rx="2" stroke="white" strokeWidth="1.5" fill="none" />
-          <path d="M3 9H21" stroke="white" strokeWidth="1.5" />
-          <path d="M8 2V6" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M16 2V6" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-          {/* Punkty reprezentujące spotkania */}
-          <circle cx="8" cy="13" r="1.5" fill="white" />
-          <circle cx="12" cy="13" r="1.5" fill="white" />
-          <circle cx="16" cy="13" r="1.5" fill="white" />
-          <circle cx="8" cy="17" r="1.5" fill="white" />
-          <circle cx="12" cy="17" r="1.5" fill="white" />
+          {/* Ikona AI - mózg/chip */}
+          <rect x="4" y="4" width="16" height="16" rx="2" stroke="white" strokeWidth="1.5" fill="none" />
+          {/* Linie reprezentujące AI/chip */}
+          <path d="M4 9H2M4 15H2M20 9H22M20 15H22" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M9 4V2M15 4V2M9 20V22M15 20V22" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+          {/* Wewnętrzny symbol - kalendarz/sieć */}
+          <circle cx="12" cy="12" r="3" stroke="white" strokeWidth="1.5" fill="none" />
+          <path d="M12 9V12L14 14" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </div>
 
@@ -51,10 +48,10 @@ export function Logo({ size = 'md', variant = 'full', className = '' }: LogoProp
       {variant === 'full' && (
         <div className="flex flex-col">
           <span className={`font-bold text-gray-800 leading-tight ${textSize}`}>
-            RoomBook
+            <span className="text-primary-600">AI</span> RoomBook
           </span>
           <span className="text-xs text-gray-500 leading-tight">
-            Rezerwacje sal
+            Inteligentne rezerwacje
           </span>
         </div>
       )}

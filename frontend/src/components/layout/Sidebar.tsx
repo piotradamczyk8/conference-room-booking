@@ -40,7 +40,7 @@ const navigation = [
 ];
 
 /**
- * Sidebar z nawigacją aplikacji - styl WIP.pl
+ * Sidebar z nawigacją aplikacji AI RoomBook
  * Responsywny - ukryty na mobile z hamburger menu
  */
 export function Sidebar() {

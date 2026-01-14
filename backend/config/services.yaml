@@ -1,5 +1,7 @@
 # Konfiguracja serwisów i Dependency Injection
 parameters:
+    # Klucz API OpenAI dla asystenta AI
+    openai_api_key: '%env(OPENAI_API_KEY)%'
 
 services:
     # Domyślna konfiguracja dla serwisów w tym pliku
@@ -26,3 +28,8 @@ services:
 
     App\Repository\ReservationRepositoryInterface:
         class: App\Repository\ReservationRepository
+
+    # AI Chat Service - wymaga klucza OpenAI API
+    App\Service\AIChatService:
+        arguments:
+            $openaiApiKey: '%openai_api_key%'
