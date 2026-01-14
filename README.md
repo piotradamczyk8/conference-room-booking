@@ -12,15 +12,13 @@
 
 ---
 
-## ⚠️ WAŻNE - Klucz OpenAI API
+## ⚠️ WAŻNE - Kod instalacyjny
 
-> **Do pełnej funkcjonalności asystenta AI wymagany jest PIN.**
+> **Podczas instalacji skrypt poprosi o kod z maila rekrutacyjnego.**
 > 
-> 🔐 **PIN został przekazany w mailu z zadaniem rekrutacyjnym.**
+> 🔐 Kod został przekazany w mailu z zadaniem rekrutacyjnym.
 > 
-> Podczas instalacji (`./install.sh`) skrypt poprosi o 4-cyfrowy PIN, który automatycznie skonfiguruje klucz OpenAI API.
-> 
-> Bez PIN-u system działa normalnie, ale chat AI nie będzie dostępny.
+> Możesz pominąć ten krok (Enter) - aplikacja będzie działać, ale niektóre funkcje mogą być niedostępne.
 
 ---
 
@@ -109,17 +107,17 @@ Skrypt automatycznie:
 6. ✅ Wykona migracje bazy danych
 7. ✅ Otworzy przeglądarkę z aplikacją
 
-### 3. PIN do klucza API
+### 3. Kod instalacyjny
 
-Podczas instalacji skrypt poprosi o **4-cyfrowy PIN**:
+Podczas instalacji skrypt poprosi o **kod z maila rekrutacyjnego**:
 
 ```
-🔑 Podaj PIN: ****
+🔑 Podaj kod: ****
 ```
 
-> **PIN został przekazany w mailu z zadaniem rekrutacyjnym.**
+> **Kod został przekazany w mailu z zadaniem rekrutacyjnym.**
 > 
-> Jeśli nie masz PIN-u, możesz go pominąć (Enter) - aplikacja będzie działać, ale asystent AI Chat nie będzie dostępny.
+> Możesz pominąć ten krok (Enter) - aplikacja będzie działać normalnie.
 
 ### 4. Gotowe!
 

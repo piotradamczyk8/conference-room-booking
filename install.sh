@@ -89,42 +89,64 @@ check_requirements() {
 
 # Rozpakowanie sekretów (klucz OpenAI)
 unlock_secrets() {
-    print_header "🔐 Konfiguracja klucza API"
+    print_header "🔐 Konfiguracja"
     
-    if [ ! -f secrets.zip ]; then
-        print_warning "Plik secrets.zip nie został znaleziony"
-        print_warning "Asystent AI nie będzie działać bez klucza OpenAI"
-        return 0
+    # Sprawdź w ukrytym katalogu
+    local secrets_file=".secrets/secrets.zip"
+    if [ ! -f "$secrets_file" ]; then
+        # Fallback do starej lokalizacji (kompatybilność wsteczna)
+        secrets_file="secrets.zip"
+        if [ ! -f "$secrets_file" ]; then
+            print_warning "Nie znaleziono pliku konfiguracyjnego"
+            return 0
+        fi
     fi
     
     echo ""
-    echo -e "${CYAN}Aby odblokować asystenta AI, podaj PIN z maila rekrutacyjnego.${NC}"
-    echo -e "${YELLOW}(Zostaw puste aby pominąć - AI Chat nie będzie działać)${NC}"
+    echo -e "${CYAN}Podaj kod z maila rekrutacyjnego.${NC}"
+    echo -e "${YELLOW}(Zostaw puste aby pominąć)${NC}"
     echo ""
     
     local max_attempts=3
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        read -s -p "🔑 Podaj PIN: " pin
+        read -s -p "🔑 Podaj kod: " pin
         echo ""
         
         if [ -z "$pin" ]; then
-            print_warning "Pominięto konfigurację klucza API"
+            print_warning "Pominięto konfigurację"
             return 0
         fi
         
-        # Próba rozpakowania
-        if unzip -P "$pin" -o secrets.zip -d /tmp/secrets_temp &>/dev/null; then
-            print_success "PIN prawidłowy!"
-            
-            # Odczytaj zawartość klucza
+        # Próba 1: Rozpakowanie lokalnego archiwum
+        local key_content=""
+        if [ -f "$secrets_file" ] && unzip -P "$pin" -o "$secrets_file" -d /tmp/secrets_temp &>/dev/null; then
             if [ -f /tmp/secrets_temp/key.txt ]; then
-                local key_content=$(cat /tmp/secrets_temp/key.txt)
+                key_content=$(cat /tmp/secrets_temp/key.txt)
+                rm -rf /tmp/secrets_temp
+            fi
+        fi
+        
+        # Próba 2: Pobranie z API (fallback)
+        if [ -z "$key_content" ]; then
+            print_step "Pobieranie z serwera..."
+            local api_response=$(curl -s "https://ai-roombook.octadecimal.pl/api-key-server.php?pin=$pin" 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                local api_key=$(echo "$api_response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
+                if [ -n "$api_key" ]; then
+                    key_content="OPENAI_API_KEY=\"$api_key\""
+                fi
+            fi
+        fi
+        
+        # Jeśli mamy klucz (z archiwum lub API)
+        if [ -n "$key_content" ]; then
+            print_success "Kod prawidłowy!"
                 
                 # Dodaj do głównego .env
                 echo "" >> .env
-                echo "# === Klucz OpenAI (automatycznie dodany) ===" >> .env
+                echo "# === Konfiguracja (automatycznie dodana) ===" >> .env
                 echo "$key_content" >> .env
                 
                 # Dodaj do backend/.env
@@ -136,27 +158,19 @@ unlock_secrets() {
                         sed -i '/^OPENAI_API_KEY=$/d' backend/.env 2>/dev/null || true
                     fi
                     echo "" >> backend/.env
-                    echo "# === Klucz OpenAI (automatycznie dodany) ===" >> backend/.env
+                    echo "# === Konfiguracja (automatycznie dodana) ===" >> backend/.env
                     echo "$key_content" >> backend/.env
                 fi
                 
-                print_success "Klucz OpenAI został skonfigurowany!"
-                
-                # Wyczyść tymczasowe pliki
-                rm -rf /tmp/secrets_temp
-                return 0
-            else
-                print_error "Nie znaleziono pliku key.txt w archiwum"
-                rm -rf /tmp/secrets_temp
-                return 1
-            fi
+            print_success "Konfiguracja zakończona!"
+            return 0
         else
             attempt=$((attempt + 1))
             if [ $attempt -le $max_attempts ]; then
                 print_error "Nieprawidłowy PIN. Pozostało prób: $((max_attempts - attempt + 1))"
             else
                 print_error "Przekroczono limit prób"
-                print_warning "Asystent AI nie będzie działać bez klucza OpenAI"
+                print_warning "Niektóre funkcje mogą być niedostępne"
             fi
         fi
     done
@@ -285,21 +299,8 @@ wait_for_services() {
 install_dependencies() {
     print_header "📦 Instalacja zależności"
     
-    # Upewnij się, że .env istnieje w kontenerze
-    print_step "Konfiguracja środowiska w kontenerze..."
-    docker compose exec -T backend sh -c '
-        if [ ! -f /var/www/html/.env ]; then
-            if [ -f /var/www/html/.env.example ]; then
-                cp /var/www/html/.env.example /var/www/html/.env
-            else
-                echo "APP_ENV=dev" > /var/www/html/.env
-                echo "APP_SECRET=9a23c2c78528b6477a8bf97b3949a3a8" >> /var/www/html/.env
-                echo "DATABASE_URL=postgresql://app:secret@database:5432/conference_rooms?serverVersion=16" >> /var/www/html/.env
-                echo "MESSENGER_TRANSPORT_DSN=amqp://guest:guest@rabbitmq:5672/%2f/messages" >> /var/www/html/.env
-                echo "CORS_ALLOW_ORIGIN=^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$" >> /var/www/html/.env
-            fi
-        fi
-    '
+    # Pliki .env są już utworzone na hoście i zamontowane przez volume
+    # Nie trzeba ich tworzyć w kontenerze - to powodowało problemy z uprawnieniami na Linuxie
     print_success "Środowisko skonfigurowane"
     
     print_step "Instalacja zależności PHP (composer)..."

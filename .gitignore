@@ -133,6 +133,15 @@ yarn-error.log*
 !docker/nginx/ssl/.gitkeep
 
 # ====================
+# Secrets (nie commitować!)
+# ====================
+.secrets/secrets.zip
+.secrets/*.zip
+.secrets/*.key
+.secrets/*.txt
+!secrets/.gitkeep
+
+# ====================
 # Misc
 # ====================
 *.cache
