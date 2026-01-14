@@ -25,14 +25,12 @@ jobs:
       - name: Setup Docker (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io curl
-          sudo systemctl start docker
+          # Użyj oficjalnej metody instalacji Docker z Docker Inc.
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sudo sh get-docker.sh
           sudo usermod -aG docker $USER
-          # Instalacja Docker Compose v2
-          sudo mkdir -p /usr/local/lib/docker/cli-plugins
-          sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
-          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          rm get-docker.sh
+          # Docker Compose v2 jest już włączony w nowszych wersjach Docker
           docker --version
           docker compose version
       
