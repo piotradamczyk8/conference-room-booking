@@ -10,23 +10,42 @@ interface Message {
   timestamp: Date;
 }
 
+// Przykładowe pytania do AI
+const exampleQuestions = [
+  'Jakie sale są wolne dziś po 14:00?',
+  'Pokaż rezerwacje na jutro',
+  'Która sala ma projektor?',
+  'Zarezerwuj salę na 10 osób',
+];
+
 /**
  * Widget AI Chat - pływający przycisk z oknem chatu
  * Pozwala użytkownikowi rozmawiać z asystentem AI o dostępności sal
  */
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showHint, setShowHint] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: 'Cześć! 👋 Jestem asystentem AI RoomBook. Mogę pomóc Ci:\n\n• Sprawdzić dostępność sal\n• Znaleźć wolne terminy\n• Podać informacje o salach\n\nO co chciałbyś zapytać?',
+      content: 'Cześć! 👋 Jestem asystentem AI RoomBook.\n\nMogę pomóc Ci:\n• Sprawdzić dostępność sal\n• Znaleźć wolne terminy\n• Podać informacje o salach\n\n💡 Przykładowe pytania:',
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Ukryj hint po 10 sekundach lub po otwarciu chatu
+  useEffect(() => {
+    const timer = setTimeout(() => setShowHint(false), 10000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) setShowHint(false);
+  }, [isOpen]);
 
   // Automatyczne przewijanie do najnowszej wiadomości
   useEffect(() => {
@@ -86,8 +105,42 @@ export function AIChatWidget() {
     }
   };
 
+  // Funkcja do wysłania przykładowego pytania
+  const sendExampleQuestion = (question: string) => {
+    setInputValue(question);
+    // Automatycznie wyślij po krótkim opóźnieniu
+    setTimeout(() => {
+      const fakeEvent = { key: 'Enter', shiftKey: false, preventDefault: () => {} } as React.KeyboardEvent;
+      handleKeyDown(fakeEvent);
+    }, 100);
+  };
+
   return (
     <>
+      {/* Hint z animowaną strzałką */}
+      {showHint && !isOpen && (
+        <div className="fixed bottom-24 right-6 z-40 animate-bounce-slow">
+          <div className="bg-white rounded-xl shadow-xl border border-primary-200 px-4 py-3 max-w-[220px]">
+            <p className="text-sm font-medium text-gray-800 mb-1">
+              👆 To to o czym mówiłem na spotkaniu!
+            </p>
+            <p className="text-xs text-gray-500">
+              Kliknij, aby porozmawiać z AI
+            </p>
+          </div>
+          {/* Strzałka wskazująca w dół */}
+          <div className="flex justify-end pr-4">
+            <svg 
+              className="w-8 h-8 text-primary-600 animate-bounce" 
+              fill="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 16l-6-6h12l-6 6z" />
+            </svg>
+          </div>
+        </div>
+      )}
+
       {/* Floating button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -95,7 +148,8 @@ export function AIChatWidget() {
           'fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg transition-all duration-300',
           'bg-gradient-to-br from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900',
           'flex items-center justify-center',
-          isOpen && 'rotate-180'
+          isOpen && 'rotate-180',
+          !isOpen && 'hover:scale-110'
         )}
         aria-label={isOpen ? 'Zamknij chat' : 'Otwórz chat AI'}
       >
@@ -125,8 +179,12 @@ export function AIChatWidget() {
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-white font-semibold text-sm">AI Asystent</h3>
-              <p className="text-white/70 text-xs">Zapytaj o dostępność sal</p>
+              <h3 style={{ color: '#ffffff', fontWeight: 700, fontSize: '0.95rem' }}>
+                🤖 AI Asystent
+              </h3>
+              <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.75rem' }}>
+                Zapytaj o dostępność sal
+              </p>
             </div>
             <button
               onClick={() => setIsOpen(false)}
@@ -141,24 +199,41 @@ export function AIChatWidget() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-96 min-h-64 bg-gray-50">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  'flex',
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
-              >
+            {messages.map((message, index) => (
+              <div key={message.id}>
                 <div
                   className={cn(
-                    'max-w-[80%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap',
-                    message.role === 'user'
-                      ? 'bg-primary-600 text-white rounded-br-md'
-                      : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-md'
+                    'flex',
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
-                  {message.content}
+                  <div
+                    className={cn(
+                      'max-w-[80%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap',
+                      message.role === 'user'
+                        ? 'bg-primary-600 text-white rounded-br-md'
+                        : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-md'
+                    )}
+                  >
+                    {message.content}
+                  </div>
                 </div>
+                {/* Przykładowe pytania po pierwszej wiadomości */}
+                {index === 0 && message.role === 'assistant' && messages.length === 1 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {exampleQuestions.map((question, qIndex) => (
+                      <button
+                        key={qIndex}
+                        onClick={() => {
+                          setInputValue(question);
+                        }}
+                        className="text-xs px-3 py-1.5 bg-white border border-primary-200 text-primary-700 rounded-full hover:bg-primary-50 hover:border-primary-300 transition-all shadow-sm"
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             {isLoading && (
