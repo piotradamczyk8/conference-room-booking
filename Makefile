@@ -34,16 +34,25 @@ help: ## Wyświetla listę dostępnych komend
 # ====================
 
 install: ## Pełna instalacja projektu (build + migrate)
+	@echo "$(BLUE)▶ Kopiowanie plików konfiguracyjnych...$(RESET)"
+	@test -f .env || cp .env.example .env
+	@test -f backend/.env || cp backend/.env.example backend/.env 2>/dev/null || echo "APP_ENV=dev" > backend/.env
 	@echo "$(BLUE)▶ Budowanie kontenerów...$(RESET)"
 	docker compose build
 	@echo "$(BLUE)▶ Uruchamianie serwisów...$(RESET)"
 	docker compose up -d
+	@echo "$(BLUE)▶ Czekanie na gotowość serwisów...$(RESET)"
+	@sleep 5
+	@echo "$(BLUE)▶ Kopiowanie .env do kontenera backend...$(RESET)"
+	docker compose exec -T backend sh -c 'test -f /var/www/html/.env || cp /var/www/html/.env.example /var/www/html/.env 2>/dev/null || echo "APP_ENV=dev" > /var/www/html/.env'
 	@echo "$(BLUE)▶ Instalacja zależności backend...$(RESET)"
-	docker compose exec backend composer install
+	docker compose exec -T backend composer install --no-interaction
 	@echo "$(BLUE)▶ Instalacja zależności frontend...$(RESET)"
-	docker compose exec frontend npm install
+	docker compose exec -T frontend npm install
+	@echo "$(BLUE)▶ Czyszczenie cache...$(RESET)"
+	docker compose exec -T backend php bin/console cache:clear --no-interaction || true
 	@echo "$(BLUE)▶ Wykonywanie migracji...$(RESET)"
-	docker compose exec backend php bin/console doctrine:migrations:migrate --no-interaction
+	docker compose exec -T backend php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "$(GREEN)✓ Instalacja zakończona!$(RESET)"
 	@echo ""
 	@echo "Dostępne URL-e:"
