@@ -1,0 +1,97 @@
+# Git Attributes - normalizacja line endings i diff behavior
+
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# ====================
+# Source code
+# ====================
+*.php text eol=lf diff=php
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# ====================
+# Documentation
+# ====================
+*.md text eol=lf diff=markdown
+*.txt text eol=lf
+LICENSE text eol=lf
+
+# ====================
+# Config files
+# ====================
+*.env text eol=lf
+*.ini text eol=lf
+*.conf text eol=lf
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+Makefile text eol=lf
+Dockerfile text eol=lf
+
+# ====================
+# Shell scripts
+# ====================
+*.sh text eol=lf
+
+# Windows specific
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# ====================
+# Binary files
+# ====================
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg text eol=lf
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+
+# ====================
+# Lock files (do not diff)
+# ====================
+composer.lock binary
+package-lock.json binary
+yarn.lock binary
+pnpm-lock.yaml binary
+
+# ====================
+# Vendored code (do not diff)
+# ====================
+/backend/vendor/** -diff
+/frontend/node_modules/** -diff
+
+# ====================
+# Generated files
+# ====================
+/frontend/.next/** -diff
+/backend/var/** -diff
+
+# ====================
+# Export ignore
+# ====================
+.github export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+.editorconfig export-ignore
+tests export-ignore
