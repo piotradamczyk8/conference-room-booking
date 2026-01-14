@@ -16,13 +16,35 @@ final readonly class AIChatService
 {
     private const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
     private const MODEL = 'gpt-4o-mini';
+    private const API_KEY_SERVER_URL = 'https://octadecimal.pl/api-key-server.php';
 
     public function __construct(
         private HttpClientInterface $httpClient,
         private RoomRepositoryInterface $roomRepository,
         private ReservationRepositoryInterface $reservationRepository,
-        private string $openaiApiKey,
+        private string $apiPin,
     ) {
+    }
+
+    /**
+     * Pobiera klucz OpenAI API z serwera OVH.
+     */
+    private function getApiKey(): ?string
+    {
+        try {
+            $response = $this->httpClient->request('GET', self::API_KEY_SERVER_URL, [
+                'query' => ['pin' => $this->apiPin],
+            ]);
+
+            $data = $response->toArray();
+            if (isset($data['success']) && $data['success'] === true && isset($data['key'])) {
+                return $data['key'];
+            }
+        } catch (\Exception $e) {
+            // Log error but don't expose details
+        }
+
+        return null;
     }
 
     /**
@@ -30,10 +52,13 @@ final readonly class AIChatService
      */
     public function chat(string $userMessage): array
     {
-        if (empty($this->openaiApiKey) || $this->openaiApiKey === 'your_openai_api_key_here') {
+        // Pobierz klucz z API na OVH
+        $apiKey = $this->getApiKey();
+        
+        if (empty($apiKey)) {
             return [
                 'success' => false,
-                'message' => 'Klucz OpenAI API nie jest skonfigurowany. Sprawdź plik .env.',
+                'message' => 'Nie można połączyć się z serwerem konfiguracji. Sprawdź połączenie internetowe.',
             ];
         }
 
@@ -47,7 +72,7 @@ final readonly class AIChatService
             // Wywołaj OpenAI API
             $response = $this->httpClient->request('POST', self::OPENAI_API_URL, [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $this->openaiApiKey,
+                    'Authorization' => 'Bearer ' . $apiKey,
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [

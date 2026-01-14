@@ -1,7 +1,7 @@
 # Konfiguracja serwisów i Dependency Injection
 parameters:
-    # Klucz API OpenAI dla asystenta AI
-    openai_api_key: '%env(OPENAI_API_KEY)%'
+    # PIN do pobierania klucza API z serwera OVH
+    api_pin: '%env(API_PIN)%'
 
 services:
     # Domyślna konfiguracja dla serwisów w tym pliku
@@ -29,7 +29,7 @@ services:
     App\Repository\ReservationRepositoryInterface:
         class: App\Repository\ReservationRepository
 
-    # AI Chat Service - wymaga klucza OpenAI API
+    # AI Chat Service - pobiera klucz z API na OVH
     App\Service\AIChatService:
         arguments:
-            $openaiApiKey: '%openai_api_key%'
+            $apiPin: '%api_pin%'

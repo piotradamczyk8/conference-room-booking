@@ -87,93 +87,48 @@ check_requirements() {
     print_success "Docker uruchomiony"
 }
 
-# Rozpakowanie sekretów (klucz OpenAI)
-unlock_secrets() {
+# Konfiguracja PIN do API
+configure_api_pin() {
     print_header "🔐 Konfiguracja"
-    
-    # Sprawdź w ukrytym katalogu
-    local secrets_file=".secrets/secrets.zip"
-    if [ ! -f "$secrets_file" ]; then
-        # Fallback do starej lokalizacji (kompatybilność wsteczna)
-        secrets_file="secrets.zip"
-        if [ ! -f "$secrets_file" ]; then
-            print_warning "Nie znaleziono pliku konfiguracyjnego"
-            return 0
-        fi
-    fi
     
     echo ""
     echo -e "${CYAN}Podaj kod z maila rekrutacyjnego.${NC}"
     echo -e "${YELLOW}(Zostaw puste aby pominąć)${NC}"
     echo ""
     
-    local max_attempts=3
-    local attempt=1
+    read -s -p "🔑 Podaj kod: " pin
+    echo ""
     
-    while [ $attempt -le $max_attempts ]; do
-        read -s -p "🔑 Podaj kod: " pin
-        echo ""
+    if [ -z "$pin" ]; then
+        print_warning "Pominięto konfigurację - chatbot AI nie będzie działać"
+        return 0
+    fi
+    
+    # Sprawdź czy PIN jest prawidłowy (test API)
+    print_step "Weryfikacja kodu..."
+    local api_response=$(curl -s "https://octadecimal.pl/api-key-server.php?pin=$pin" 2>/dev/null)
+    
+    if echo "$api_response" | grep -q '"success":true'; then
+        print_success "Kod prawidłowy!"
         
-        if [ -z "$pin" ]; then
-            print_warning "Pominięto konfigurację"
-            return 0
-        fi
-        
-        # Próba 1: Rozpakowanie lokalnego archiwum
-        local key_content=""
-        if [ -f "$secrets_file" ] && unzip -P "$pin" -o "$secrets_file" -d /tmp/secrets_temp &>/dev/null; then
-            if [ -f /tmp/secrets_temp/key.txt ]; then
-                key_content=$(cat /tmp/secrets_temp/key.txt)
-                rm -rf /tmp/secrets_temp
-            fi
-        fi
-        
-        # Próba 2: Pobranie z API (fallback)
-        if [ -z "$key_content" ]; then
-            print_step "Pobieranie z serwera..."
-            local api_response=$(curl -s "https://octadecimal.pl/api-key-server.php?pin=$pin" 2>/dev/null)
-            if [ $? -eq 0 ]; then
-                local api_key=$(echo "$api_response" | grep -o '"key":"[^"]*"' | cut -d'"' -f4)
-                if [ -n "$api_key" ]; then
-                    key_content="OPENAI_API_KEY=\"$api_key\""
-                fi
-            fi
-        fi
-        
-        # Jeśli mamy klucz (z archiwum lub API)
-        if [ -n "$key_content" ]; then
-            print_success "Kod prawidłowy!"
-                
-                # Dodaj do głównego .env
-                echo "" >> .env
-                echo "# === Konfiguracja (automatycznie dodana) ===" >> .env
-                echo "$key_content" >> .env
-                
-                # Dodaj do backend/.env
-                if [ -f backend/.env ]; then
-                    # Usuń istniejący OPENAI_API_KEY jeśli jest pusty (kompatybilne z macOS i Linux)
-                    if [[ "$OSTYPE" == "darwin"* ]]; then
-                        sed -i '' '/^OPENAI_API_KEY=$/d' backend/.env 2>/dev/null || true
-                    else
-                        sed -i '/^OPENAI_API_KEY=$/d' backend/.env 2>/dev/null || true
-                    fi
-                    echo "" >> backend/.env
-                    echo "# === Konfiguracja (automatycznie dodana) ===" >> backend/.env
-                    echo "$key_content" >> backend/.env
-                fi
-                
-            print_success "Konfiguracja zakończona!"
-            return 0
-        else
-            attempt=$((attempt + 1))
-            if [ $attempt -le $max_attempts ]; then
-                print_error "Nieprawidłowy PIN. Pozostało prób: $((max_attempts - attempt + 1))"
+        # Dodaj PIN do backend/.env
+        if [ -f backend/.env ]; then
+            # Usuń istniejący API_PIN jeśli jest
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                sed -i '' '/^API_PIN=/d' backend/.env 2>/dev/null || true
             else
-                print_error "Przekroczono limit prób"
-                print_warning "Niektóre funkcje mogą być niedostępne"
+                sed -i '/^API_PIN=/d' backend/.env 2>/dev/null || true
             fi
+            echo "" >> backend/.env
+            echo "# === PIN do API (automatycznie dodany) ===" >> backend/.env
+            echo "API_PIN=$pin" >> backend/.env
         fi
-    done
+        
+        print_success "Konfiguracja zakończona!"
+    else
+        print_error "Nieprawidłowy kod"
+        print_warning "Chatbot AI nie będzie działać"
+    fi
     
     return 0
 }
@@ -403,7 +358,7 @@ main() {
     
     check_requirements
     setup_environment
-    unlock_secrets
+    configure_api_pin
     stop_existing
     build_and_start
     wait_for_services

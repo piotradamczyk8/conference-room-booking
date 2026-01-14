@@ -19,7 +19,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://app:secret@database:5432/conference_rooms?serverVersion=16}
       - MESSENGER_TRANSPORT_DSN=${MESSENGER_TRANSPORT_DSN:-amqp://guest:guest@rabbitmq:5672/%2f/messages}
       - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - API_PIN=${API_PIN:-}
     volumes:
       - ./backend:/var/www/html
       - backend_var:/var/www/html/var
