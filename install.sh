@@ -44,10 +44,29 @@ print_error() {
 check_requirements() {
     print_header "🔍 Sprawdzanie wymagań"
     
+    # Sprawdź czy projekt nie jest w koszu lub w niedozwolonej lokalizacji
+    local current_path=$(pwd)
+    if [[ "$current_path" == *".Trash"* ]] || [[ "$current_path" == *"/Trash/"* ]]; then
+        print_error "Projekt nie może być uruchomiony z kosza!"
+        echo ""
+        echo "Przenieś projekt do normalnej lokalizacji:"
+        echo -e "  ${BLUE}cd ~/Projects${NC}"
+        echo -e "  ${BLUE}git clone https://github.com/piotradamczyk8/conference-room-booking.git${NC}"
+        echo -e "  ${BLUE}cd conference-room-booking${NC}"
+        echo -e "  ${BLUE}./install.sh${NC}"
+        exit 1
+    fi
+    print_success "Lokalizacja projektu OK"
+    
     # Docker
     if ! command -v docker &> /dev/null; then
         print_error "Docker nie jest zainstalowany!"
-        echo "Zainstaluj Docker: https://docs.docker.com/get-docker/"
+        echo ""
+        echo "Zainstaluj Docker Desktop:"
+        echo -e "  ${BLUE}macOS/Windows:${NC} https://docs.docker.com/desktop/"
+        echo -e "  ${BLUE}Linux:${NC}         https://docs.docker.com/engine/install/"
+        echo ""
+        echo "Po instalacji uruchom Docker Desktop i spróbuj ponownie."
         exit 1
     fi
     print_success "Docker zainstalowany"
