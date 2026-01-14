@@ -290,7 +290,7 @@ check_status() {
 
 # Otwieranie przeglądarki
 open_browser() {
-    print_header "🌐 Otwieranie przeglądarki"
+    print_header "🌐 Uruchamianie aplikacji"
     
     local url="http://localhost:3000"
     
@@ -307,16 +307,41 @@ open_browser() {
     
     print_success "Frontend gotowy!"
     
-    # Otwieranie przeglądarki
+    # Próba otwarcia przeglądarki
+    local browser_opened=false
+    
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        open "$url"
+        # macOS
+        open "$url" && browser_opened=true
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        xdg-open "$url" 2>/dev/null || sensible-browser "$url" 2>/dev/null || true
+        # Linux - sprawdź czy jest dostępne środowisko graficzne
+        if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
+            # Środowisko graficzne dostępne
+            if command -v xdg-open &> /dev/null; then
+                xdg-open "$url" 2>/dev/null && browser_opened=true
+            elif command -v sensible-browser &> /dev/null; then
+                sensible-browser "$url" 2>/dev/null && browser_opened=true
+            elif command -v firefox &> /dev/null; then
+                firefox "$url" 2>/dev/null &
+                browser_opened=true
+            elif command -v google-chrome &> /dev/null; then
+                google-chrome "$url" 2>/dev/null &
+                browser_opened=true
+            fi
+        fi
     elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-        start "$url"
+        # Windows (Git Bash)
+        start "$url" && browser_opened=true
     fi
     
-    print_success "Przeglądarka otwarta"
+    if [ "$browser_opened" = true ]; then
+        print_success "Przeglądarka otwarta"
+    else
+        echo ""
+        echo -e "${YELLOW}Nie można automatycznie otworzyć przeglądarki.${NC}"
+        echo -e "${CYAN}Otwórz ręcznie:${NC} ${BLUE}$url${NC}"
+        echo ""
+    fi
 }
 
 # Podsumowanie
