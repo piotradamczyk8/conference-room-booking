@@ -21,11 +21,9 @@ final readonly class CreateReservationRequest
         public string $reservedBy,
 
         #[Assert\NotBlank(message: 'Czas rozpoczęcia jest wymagany')]
-        #[Assert\DateTime(format: \DateTimeInterface::ATOM, message: 'Nieprawidłowy format daty rozpoczęcia')]
         public string $startTime,
 
         #[Assert\NotBlank(message: 'Czas zakończenia jest wymagany')]
-        #[Assert\DateTime(format: \DateTimeInterface::ATOM, message: 'Nieprawidłowy format daty zakończenia')]
         public string $endTime,
 
         #[Assert\Length(max: 200, maxMessage: 'Tytuł nie może przekraczać {{ limit }} znaków')]

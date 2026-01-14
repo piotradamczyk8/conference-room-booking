@@ -15,10 +15,8 @@ final readonly class UpdateReservationRequest
         #[Assert\Length(max: 100, maxMessage: 'Imię i nazwisko nie może przekraczać {{ limit }} znaków')]
         public ?string $reservedBy = null,
 
-        #[Assert\DateTime(format: \DateTimeInterface::ATOM, message: 'Nieprawidłowy format daty rozpoczęcia')]
         public ?string $startTime = null,
 
-        #[Assert\DateTime(format: \DateTimeInterface::ATOM, message: 'Nieprawidłowy format daty zakończenia')]
         public ?string $endTime = null,
 
         #[Assert\Length(max: 200, maxMessage: 'Tytuł nie może przekraczać {{ limit }} znaków')]

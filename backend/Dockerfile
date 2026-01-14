@@ -68,11 +68,16 @@ FROM php:8.3-fpm-alpine AS production
 LABEL maintainer="Piotr Adamczyk"
 LABEL description="Conference Room Booking System - Backend"
 
+# Kopiowanie composera z pierwszego etapu
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
 # Instalacja rozszerzeń PHP (runtime)
 RUN apk add --no-cache \
     postgresql-dev \
     icu-dev \
     rabbitmq-c-dev \
+    git \
+    unzip \
     $PHPIZE_DEPS \
     && docker-php-ext-install \
     pdo_pgsql \
@@ -120,10 +125,10 @@ RUN apk add --no-cache \
     vim
 
 # Instalacja Xdebug dla debugowania
-RUN apk add --no-cache $PHPIZE_DEPS \
+RUN apk add --no-cache $PHPIZE_DEPS linux-headers \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
-    && apk del $PHPIZE_DEPS
+    && apk del $PHPIZE_DEPS linux-headers
 
 # Konfiguracja Xdebug
 RUN echo "xdebug.mode=develop,debug,coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \

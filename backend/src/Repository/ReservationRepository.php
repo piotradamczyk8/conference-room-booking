@@ -23,8 +23,11 @@ class ReservationRepository extends ServiceEntityRepository implements Reservati
 
     public function save(Reservation $reservation): void
     {
-        $this->getEntityManager()->persist($reservation);
-        $this->getEntityManager()->flush();
+        $em = $this->getEntityManager();
+        $em->persist($reservation);
+        $em->flush();
+        // Wyczyść cache EntityManager żeby kolejne GET zwracały świeże dane
+        $em->clear();
     }
 
     public function remove(Reservation $reservation): void
