@@ -109,5 +109,5 @@ COPY . .
 EXPOSE 3000
 
 # Skrypt startowy - instaluje zależności przy starcie (dla dev mode)
-# Wymuszamy instalację binarki lightningcss dla Linux x64 glibc
-CMD ["sh", "-c", "npm install && npm install lightningcss-linux-x64-gnu && npm run dev"]
+# Usuwamy package-lock.json aby npm zainstalował binaria dla aktualnej platformy
+CMD ["sh", "-c", "rm -f package-lock.json && npm install && npm run dev"]
