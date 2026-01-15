@@ -107,7 +107,5 @@ COPY . .
 # Ekspozycja portu
 EXPOSE 3000
 
-# Skrypt startowy który zawsze reinstaluje zależności
-# (rozwiązuje problem z binariami dla innej platformy w volume)
-# Usuwamy zawartość node_modules (nie sam folder bo to volume)
-CMD ["sh", "-c", "rm -rf node_modules/* node_modules/.* 2>/dev/null || true; npm install && npm run dev"]
+# Skrypt startowy - instaluje zależności przy starcie (dla dev mode)
+CMD ["sh", "-c", "npm install && npm run dev"]
