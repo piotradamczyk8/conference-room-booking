@@ -91,13 +91,19 @@ check_requirements() {
 configure_api_pin() {
     print_header "🔐 Konfiguracja"
     
-    echo ""
-    echo -e "${CYAN}Podaj kod z maila rekrutacyjnego.${NC}"
-    echo -e "${YELLOW}(Zostaw puste aby pominąć)${NC}"
-    echo ""
-    
-    read -s -p "🔑 Podaj kod: " pin
-    echo ""
+    # Sprawdź czy PIN jest w zmiennej środowiskowej (dla testów automatycznych)
+    if [ -n "$API_PIN" ]; then
+        pin="$API_PIN"
+        print_step "Używam PIN z zmiennej środowiskowej API_PIN"
+    else
+        echo ""
+        echo -e "${CYAN}Podaj kod z maila rekrutacyjnego.${NC}"
+        echo -e "${YELLOW}(Zostaw puste aby pominąć)${NC}"
+        echo ""
+        
+        read -s -p "🔑 Podaj kod: " pin
+        echo ""
+    fi
     
     if [ -z "$pin" ]; then
         print_warning "Pominięto konfigurację - chatbot AI nie będzie działać"
@@ -204,8 +210,8 @@ stop_existing() {
     print_header "🛑 Zatrzymywanie istniejących kontenerów"
     
     if docker compose ps -q 2>/dev/null | grep -q .; then
-        docker compose down --remove-orphans 2>/dev/null || true
-        print_success "Kontenery zatrzymane"
+        docker compose down -v --remove-orphans 2>/dev/null || true
+        print_success "Kontenery zatrzymane (volumes usunięte)"
     else
         print_success "Brak uruchomionych kontenerów"
     fi
@@ -270,9 +276,13 @@ install_dependencies() {
     print_success "Środowisko skonfigurowane"
     
     print_step "Instalacja zależności PHP (composer)..."
+    # Utwórz katalog var/cache przed instalacją (wymagany przez Symfony)
+    docker compose exec -T --user root backend mkdir -p /var/www/html/var/cache /var/www/html/var/log 2>/dev/null || true
+    docker compose exec -T --user root backend chmod -R 777 /var/www/html/var 2>/dev/null || true
+    docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/var 2>/dev/null || true
     # Uruchom jako root aby uniknąć problemów z uprawnieniami na Linux
     docker compose exec -T --user root backend composer install --no-interaction --optimize-autoloader 2>&1 | tail -5
-    # Napraw uprawnienia dla www-data (vendor i var)
+    # Napraw uprawnienia dla www-data (vendor i var) po instalacji
     docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/vendor 2>/dev/null || true
     docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/var 2>/dev/null || true
     docker compose exec -T --user root backend chmod -R 777 /var/www/html/var 2>/dev/null || true
@@ -396,7 +406,10 @@ print_summary() {
 
 # Główna funkcja
 main() {
-    clear
+    # Wyczyść ekran tylko jeśli terminal jest interaktywny
+    if [ -t 1 ]; then
+        clear
+    fi
     echo ""
     echo -e "${CYAN}╔═══════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║${NC}                                                           ${CYAN}║${NC}"
