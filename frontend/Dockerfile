@@ -109,5 +109,6 @@ COPY . .
 EXPOSE 3000
 
 # Skrypt startowy - instaluje zależności przy starcie (dla dev mode)
-# Usuwamy package-lock.json aby npm zainstalował binaria dla aktualnej platformy
-CMD ["sh", "-c", "rm -f package-lock.json && npm install && npm run dev"]
+# Kopiujemy package.json do /tmp, instalujemy tam i kopiujemy z powrotem
+# aby obejść problemy z bind mount i platform-specific binaries
+CMD ["sh", "-c", "cp package.json /tmp/ && cd /tmp && npm install && cp -r node_modules /app/ && cd /app && npm run dev"]
