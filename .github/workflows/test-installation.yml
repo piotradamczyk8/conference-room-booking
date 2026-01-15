@@ -72,14 +72,14 @@ jobs:
         shell: bash
         run: |
           echo "Czekanie na uruchomienie serwisów..."
-          sleep 20
+          sleep 60
       
       - name: Check container status
         shell: bash
         run: |
           docker compose ps
-          # Sprawdź czy główne kontenery są Up (messenger-worker może restartować się)
-          CRITICAL_CONTAINERS="crb-backend crb-frontend crb-nginx crb-database crb-rabbitmq"
+          # Sprawdź czy główne kontenery są Up (frontend/messenger mogą restartować się - sprawdzane osobno)
+          CRITICAL_CONTAINERS="crb-backend crb-nginx crb-database crb-rabbitmq"
           FAILED=0
           for container in $CRITICAL_CONTAINERS; do
             STATUS=$(docker compose ps --format "table {{.Name}}\t{{.Status}}" | grep "$container" | awk '{print $2" "$3" "$4" "$5" "$6}')
@@ -99,8 +99,8 @@ jobs:
       - name: Test Frontend
         shell: bash
         run: |
-          echo "Testowanie frontendu..."
-          max_attempts=30
+          echo "Testowanie frontendu (czekam na npm install w kontenerze)..."
+          max_attempts=60
           attempt=1
           while [ $attempt -le $max_attempts ]; do
             if curl -s -f http://localhost:3000 > /dev/null 2>&1; then
