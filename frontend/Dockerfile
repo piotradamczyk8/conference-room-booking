@@ -107,6 +107,6 @@ COPY . .
 # Ekspozycja portu
 EXPOSE 3000
 
-# Skrypt startowy który instaluje zależności jeśli brakuje
-# (rozwiązuje problem z montowaniem pustego volume node_modules)
-CMD ["sh", "-c", "if [ ! -d 'node_modules' ] || [ ! -f 'node_modules/.package-lock.json' ]; then npm install; fi && npm run dev"]
+# Skrypt startowy który zawsze reinstaluje zależności
+# (rozwiązuje problem z binariami dla innej platformy w volume)
+CMD ["sh", "-c", "rm -rf node_modules && npm install && npm run dev"]
