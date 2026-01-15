@@ -1,0 +1,183 @@
+name: Test Installation
+
+on:
+  push:
+    branches: [ main, githubtest-version, mysql-version ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Pozwala uruchomić ręcznie
+
+jobs:
+  test-installation:
+    name: Test install.sh on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS pominięty - wymaga Docker Desktop
+        # Windows pominięty - wymaga WSL2/Linux containers (problemy z Windows containers)
+        os: [ubuntu-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Docker (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          # Użyj oficjalnej metody instalacji Docker z Docker Inc.
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sudo sh get-docker.sh
+          sudo usermod -aG docker $USER
+          rm get-docker.sh
+          # Docker Compose v2 jest już włączony w nowszych wersjach Docker
+          docker --version
+          docker compose version
+      
+      - name: Setup Docker (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # macOS runners nie mają Docker - użyj Colima lub Docker Desktop
+          # Na razie pomijamy macOS - wymaga dodatkowej konfiguracji
+          echo "⚠️ macOS wymaga Docker Desktop - pomijamy na razie"
+          exit 0
+      
+      - name: Setup Docker (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          # Windows runners używają WSL2 dla Linux containers
+          # Docker Desktop powinien być dostępny
+          docker --version
+          docker compose version
+          # Upewnij się że używamy Linux containers
+          docker version --format '{{.Server.OSType}}'
+      
+      - name: Make install.sh executable
+        shell: bash
+        run: chmod +x install.sh
+      
+      - name: Cleanup old volumes (if any)
+        shell: bash
+        run: |
+          docker compose down -v 2>/dev/null || true
+      
+      - name: Run installation script
+        shell: bash
+        env:
+          API_PIN: ${{ secrets.API_PIN || '1401' }}
+        run: |
+          ./install.sh
+      
+      - name: Wait for services
+        shell: bash
+        run: |
+          echo "Czekanie na uruchomienie serwisów..."
+          sleep 20
+      
+      - name: Check container status
+        shell: bash
+        run: |
+          docker compose ps
+          # Sprawdź czy główne kontenery są Up (messenger-worker może restartować się)
+          CRITICAL_CONTAINERS="crb-backend crb-frontend crb-nginx crb-database crb-rabbitmq"
+          FAILED=0
+          for container in $CRITICAL_CONTAINERS; do
+            STATUS=$(docker compose ps --format "table {{.Name}}\t{{.Status}}" | grep "$container" | awk '{print $2" "$3" "$4" "$5" "$6}')
+            if ! echo "$STATUS" | grep -q "Up"; then
+              echo "❌ $container nie działa: $STATUS"
+              FAILED=1
+            fi
+          done
+          if [ $FAILED -eq 1 ]; then
+            echo "❌ Niektóre krytyczne kontenery nie działają"
+            docker compose ps
+            docker compose logs
+            exit 1
+          fi
+          echo "✅ Wszystkie krytyczne kontenery działają"
+      
+      - name: Test Frontend
+        shell: bash
+        run: |
+          echo "Testowanie frontendu..."
+          max_attempts=30
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            if curl -s -f http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Frontend odpowiada (HTTP 200)"
+              break
+            fi
+            sleep 2
+            attempt=$((attempt + 1))
+          done
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ Frontend nie odpowiada"
+            docker compose logs frontend
+            exit 1
+          fi
+      
+      - name: Test Backend API
+        shell: bash
+        run: |
+          echo "Testowanie backend API..."
+          if ! curl -s -f http://localhost:8080/api/rooms > /dev/null; then
+            echo "❌ Backend API nie odpowiada"
+            docker compose logs backend
+            exit 1
+          fi
+          echo "✅ Backend API odpowiada"
+      
+      - name: Test AI Chat Status
+        shell: bash
+        run: |
+          echo "Testowanie statusu chata AI..."
+          CHAT_STATUS=$(curl -s http://localhost:8080/api/chat/status || echo "")
+          if echo "$CHAT_STATUS" | grep -q '"available":true'; then
+            echo "✅ Chat AI jest dostępny"
+          else
+            echo "⚠️ Chat AI może nie być skonfigurowany"
+            echo "Status: $CHAT_STATUS"
+          fi
+      
+      - name: Test AI Chat Response
+        shell: bash
+        run: |
+          echo "Testowanie odpowiedzi chata AI..."
+          CHAT_RESPONSE=$(curl -s -X POST http://localhost:8080/api/chat \
+            -H "Content-Type: application/json" \
+            -d '{"message":"Cześć, jakie sale są dostępne?"}' || echo "")
+          
+          if echo "$CHAT_RESPONSE" | grep -q '"success":true'; then
+            echo "✅ Chat AI odpowiada poprawnie"
+            # Wyciągnij message z JSON
+            MESSAGE=$(echo "$CHAT_RESPONSE" | grep -o '"message":"[^"]*"' | cut -d'"' -f4 | head -c 100)
+            echo "Odpowiedź: ${MESSAGE}..."
+          else
+            echo "❌ Chat AI nie odpowiada poprawnie"
+            echo "Odpowiedź: $CHAT_RESPONSE"
+            exit 1
+          fi
+      
+      - name: Test Frontend Rendering
+        shell: bash
+        run: |
+          echo "Testowanie renderowania frontendu..."
+          HTML=$(curl -s http://localhost:3000 || echo "")
+          if echo "$HTML" | grep -q "AI RoomBook\|conference"; then
+            echo "✅ Frontend renderuje się poprawnie"
+          else
+            echo "⚠️ Frontend może mieć problemy z renderowaniem"
+          fi
+      
+      - name: Show logs on failure
+        if: failure()
+        shell: bash
+        run: |
+          echo "=== Logi kontenerów ==="
+          docker compose logs
+      
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          docker compose down -v || true
