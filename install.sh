@@ -276,9 +276,13 @@ install_dependencies() {
     print_success "Środowisko skonfigurowane"
     
     print_step "Instalacja zależności PHP (composer)..."
+    # Utwórz katalog var/cache przed instalacją (wymagany przez Symfony)
+    docker compose exec -T --user root backend mkdir -p /var/www/html/var/cache /var/www/html/var/log 2>/dev/null || true
+    docker compose exec -T --user root backend chmod -R 777 /var/www/html/var 2>/dev/null || true
+    docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/var 2>/dev/null || true
     # Uruchom jako root aby uniknąć problemów z uprawnieniami na Linux
     docker compose exec -T --user root backend composer install --no-interaction --optimize-autoloader 2>&1 | tail -5
-    # Napraw uprawnienia dla www-data (vendor i var)
+    # Napraw uprawnienia dla www-data (vendor i var) po instalacji
     docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/vendor 2>/dev/null || true
     docker compose exec -T --user root backend chown -R www-data:www-data /var/www/html/var 2>/dev/null || true
     docker compose exec -T --user root backend chmod -R 777 /var/www/html/var 2>/dev/null || true
