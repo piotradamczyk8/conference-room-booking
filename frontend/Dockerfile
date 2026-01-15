@@ -84,12 +84,13 @@ CMD ["node", "server.js"]
 # ====================
 # Stage 4: Development
 # ====================
-FROM node:20-alpine AS development
+# Używamy node:20 (glibc) zamiast alpine (musl) dla kompatybilności z lightningcss
+FROM node:20-slim AS development
 
 WORKDIR /app
 
 # Instalacja narzędzi deweloperskich
-RUN apk add --no-cache git bash
+RUN apt-get update && apt-get install -y git bash && rm -rf /var/lib/apt/lists/*
 
 # Zmienne środowiskowe
 ENV NODE_ENV=development
