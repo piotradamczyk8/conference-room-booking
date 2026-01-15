@@ -109,4 +109,5 @@ EXPOSE 3000
 
 # Skrypt startowy który zawsze reinstaluje zależności
 # (rozwiązuje problem z binariami dla innej platformy w volume)
-CMD ["sh", "-c", "rm -rf node_modules && npm install && npm run dev"]
+# Usuwamy zawartość node_modules (nie sam folder bo to volume)
+CMD ["sh", "-c", "rm -rf node_modules/* node_modules/.* 2>/dev/null || true; npm install && npm run dev"]
